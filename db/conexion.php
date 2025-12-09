@@ -1,37 +1,48 @@
 <?php
-## Conexión Azure
-public static function connection(){
 
-    $hostname  = "serverphplimpio.mysql.database.azure.com";
-    $port      = "3306";
-    $database  = "pwa_ejecucion";
-    $username  = "admin_php";
-    $password  = "Colviseg20*";
+class Conexion {
 
-    // Ruta del certificado CA descargado desde Azure
-    $ssl_cert_path = __DIR__ . "/assets/database/DigiCertGlobalRootG2.crt.pem";
+    public static $mensaje = ""; // <-- mensaje visible para imprimir
 
-    $options = array(
-        PDO::MYSQL_ATTR_SSL_CA => $ssl_cert_path,
-        PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-    );
+    public static function connection() {
 
-    try {
+        $hostname  = "server-pwa.mysql.database.azure.com";
+        $port      = 3306;
+        $database  = "pwa_ejecucion";
+        $username  = "admin_php";
+        $password  = "Colviseg20*";
 
-        $pdo = new PDO(
-            "mysql:host=$hostname;port=$port;dbname=$database;charset=utf8",
-            $username,
-            $password,
-            $options
-        );
+        // Ruta del certificado SSL
+        $ssl_cert_path = __DIR__ . "/../assets/databases/DigiCertGlobalRootG2.crt.pem";
 
-        return $pdo;
+        if (!file_exists($ssl_cert_path)) {
+            self::$mensaje = "❌ Certificado NO encontrado en: $ssl_cert_path";
+            return false;
+        }
 
-    } catch (PDOException $e) {
-        die("Error de conexión Azure: " . $e->getMessage());
+        try {
+
+            $dsn = "mysql:host=$hostname;port=$port;dbname=$database;charset=utf8";
+
+            $options = [
+                PDO::MYSQL_ATTR_SSL_CA => $ssl_cert_path,
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true,
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ];
+
+            $pdo = new PDO($dsn, $username, $password, $options);
+
+            self::$mensaje = "✔ Conexión exitosa a Azure MySQL";
+            return $pdo;
+
+        } catch (PDOException $e) {
+
+            self::$mensaje = "❌ Error de conexión: " . $e->getMessage();
+            return false;
+        }
     }
 }
 
-?>
 
+
+?>

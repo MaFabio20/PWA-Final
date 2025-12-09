@@ -4,33 +4,39 @@ header('Content-Type: application/json');
 
 require_once "../db/conexion.php";
 
+// Crear la conexión PDO correctamente
+$conn = Conexion::connection();
+
 $usuario = $_POST['usuario'] ?? '';
 $password = $_POST['password'] ?? '';
 
 if (!$usuario || !$password) {
-    echo json_encode(['status'=>'error','msg'=>'missing']);
+    echo json_encode(['status' => 'error', 'msg' => 'missing']);
     exit;
 }
 
+// Consulta usando PDO
 $stmt = $conn->prepare("SELECT id, usuario, nombre, password, rol FROM usuarios WHERE usuario = ?");
-$stmt->bind_param("s", $usuario);
-$stmt->execute();
-$res = $stmt->get_result();
+$stmt->execute([$usuario]);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($res && $res->num_rows === 1) {
-    $row = $res->fetch_assoc();
+if ($row) {
 
-    // Comparación en texto plano para pruebas
+    // Comparación en texto plano (porque así está tu BD)
     if ($row['password'] === $password) {
+
         $_SESSION['user'] = [
             'id' => $row['id'],
             'usuario' => $row['usuario'],
             'nombre' => $row['nombre'],
             'rol' => $row['rol']
         ];
-        echo json_encode(['status'=>'ok']);
+
+        echo json_encode(['status' => 'ok']);
         exit;
     }
 }
 
-echo json_encode(['status'=>'error']);
+// Si llega aquí → error
+echo json_encode(['status' => 'error']);
+exit;

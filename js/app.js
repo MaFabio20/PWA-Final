@@ -1,26 +1,31 @@
-// Install prompt handling
+// Install prompt
 let deferredPrompt;
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  // optionally show a UI to ask user to install
 });
 
+// Mostrar el cuadro para instalar
 function promptInstall(){
   if (deferredPrompt){
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(choice => {
+    deferredPrompt.userChoice.then(() => {
       deferredPrompt = null;
     });
   }
 }
 
-// simple filter function for dashboard (client-side)
+// Filtro de tickets
 function applyFilter(){
   const f = document.getElementById('filterState').value;
   const tickets = document.querySelectorAll('.ticket');
+
   tickets.forEach(t => {
-    if (f === 'todos' || t.dataset.estado === f) t.style.display = '';
-    else t.style.display = 'none';
+    if (f === 'todos' || t.dataset.estado === f) {
+      t.style.display = '';
+    } else {
+      t.style.display = 'none';
+    }
   });
 }

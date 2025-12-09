@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 if (isset($_SESSION['user'])) header("Location: dashboard.php");
@@ -22,9 +23,7 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 
       <h2>Iniciar sesión</h2>
 
-      <!-- FORMULARIO SIN RECARGAR PÁGINA -->
       <form onsubmit="return login(event)" class="login-form">
-
         <label>Usuario</label>
         <input type="text" name="usuario" required>
 
@@ -33,25 +32,19 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 
         <button type="submit" class="btn-login">Ingresar</button>
 
-        <!-- Mensaje de error -->
         <p id="error-msg" class="error-msg"></p>
-
       </form>
 
       <p class="login-info">
         Usuarios de prueba:<br>
-        <strong>cliente1 / 1234</strong> (usuario) <br>
-        <strong>fmahecha / 1234</strong> (técnico)
+        <strong>cliente1 / 1234</strong><br>
+        <strong>fmahecha / 1234</strong>
       </p>
 
     </div>
-
     <div class="login-right"></div>
   </div>
 
-  <script src="js/app.js"></script>
-
-  <!-- SCRIPT DE VALIDACIÓN Y ANIMACIÓN -->
   <script>
     function login(event) {
       event.preventDefault();
@@ -59,37 +52,32 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
       const form = document.querySelector('.login-form');
       const formData = new FormData(form);
 
-      fetch("api/login.php", {
+      fetch("./api/login.php", {
         method: "POST",
         body: formData
       })
       .then(r => r.json())
       .then(data => {
         if (data.status === "ok") {
-          window.location.href = "dashboard.php"; // Redirección correcta
+          window.location.href = "dashboard.php";
         } else {
           mostrarError("Usuario o contraseña incorrectos");
         }
-      });
-
-      return false;
+      })
+      .catch(err => mostrarError("Error de conexión con el servidor"));
     }
 
-    // Animación + texto
     function mostrarError(msg) {
       const err = document.getElementById("error-msg");
       err.innerText = msg;
 
       const inputs = document.querySelectorAll(".login-form input");
-
       inputs.forEach(i => {
-          i.classList.add("input-error");
-          setTimeout(() => i.classList.remove("input-error"), 500);
+        i.classList.add("input-error");
+        setTimeout(() => i.classList.remove("input-error"), 500);
       });
     }
   </script>
-
-<script src="/js/app.js"></script>
 
 </body>
 </html>
