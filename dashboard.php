@@ -12,11 +12,9 @@ $user = $_SESSION['user'];
 $userId = intval($user['id']);
 $role = $user['rol'];
 
-// lista de tecnicos para asignar (solo tecnicos) - con PDO
 $tecnicosStmt = $conn->query("SELECT id, nombre FROM usuarios WHERE rol='tecnico' ORDER BY nombre");
 $tecnicos = $tecnicosStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// obtener tickets visibles (PDO)
 if ($role === 'admin') {
     $ticketsSQL = "SELECT t.*, u1.nombre AS creador_nombre, u2.nombre AS asignado_nombre 
                    FROM tickets t 
