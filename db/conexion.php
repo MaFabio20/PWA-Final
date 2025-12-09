@@ -2,7 +2,7 @@
 
 class Conexion {
 
-    public static $mensaje = ""; // <-- mensaje visible para imprimir
+    public static $mensaje = ""; 
 
     public static function connection() {
 
@@ -12,7 +12,6 @@ class Conexion {
         $username  = "admin_php";
         $password  = "Colviseg20*";
 
-        // Ruta del certificado SSL
         $ssl_cert_path = __DIR__ . "/../assets/databases/DigiCertGlobalRootG2.crt.pem";
 
         if (!file_exists($ssl_cert_path)) {
