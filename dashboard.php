@@ -67,7 +67,7 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <main class="layout">
   <aside class="panel">
     <h3>Crear nuevo ticket</h3>
-    <form action="api/create_ticket.php" method="POST" enctype="multipart/form-data">
+    <form action="https://ticket-colviseg-gpfhc9dtbkfsavfb.mexicocentral-01.azurewebsites.net/api/create_ticket.php" method="POST" enctype="multipart/form-data">
       <label>Título</label>
       <input name="titulo" required maxlength="200">
       <label>Descripción</label>
