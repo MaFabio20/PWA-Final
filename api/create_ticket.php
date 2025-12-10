@@ -16,11 +16,9 @@ if (!$titulo || !$descripcion || !$asignado_a) {
     exit;
 }
 
-// prepara uploads dir
 $uploadDir = __DIR__ . '/../uploads/';
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
-// manejo de archivo (opcional)
 $uploadName = null;
 if (!empty($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
     $tmp = $_FILES['attachment']['tmp_name'];
@@ -29,10 +27,8 @@ if (!empty($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_E
     $mime = finfo_file($finfo, $tmp);
     finfo_close($finfo);
 
-    // permitir solo imágenes
     $allowed = ['image/jpeg','image/png','image/webp','image/gif','image/jpg'];
     if (!in_array($mime, $allowed)) {
-        // no permitido, ignorar archivo
         $uploadName = null;
     } else {
         $ext = pathinfo($orig, PATHINFO_EXTENSION);
@@ -44,7 +40,6 @@ if (!empty($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_E
     }
 }
 
-// insertar ticket (PDO)
 $sql = "INSERT INTO tickets (titulo, descripcion, prioridad, estado, creador, asignado_a, attachment) VALUES (:titulo, :descripcion, :prioridad, 'Abierto', :creador, :asignado_a, :attachment)";
 $stmt = $conn->prepare($sql);
 $stmt->execute([
@@ -57,12 +52,10 @@ $stmt->execute([
 ]);
 $ticket_id = $conn->lastInsertId();
 
-// insertar historial
 if ($ticket_id) {
     $hstmt = $conn->prepare("INSERT INTO historial (ticket_id, estado, usuario) VALUES (:tid, 'Abierto', :user)");
     $hstmt->execute([':tid' => $ticket_id, ':user' => $creador]);
 }
 
-// redirigir de vuelta
 header("Location: ../dashboard.php");
 exit;
