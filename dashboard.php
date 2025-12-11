@@ -177,5 +177,14 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 <script src="./js/app.js"></script>
+
+<script>
+if (!navigator.onLine) {
+  if (!localStorage.getItem("offlineLogin")) {
+      window.location.href = "index.php";
+  }
+}
+</script>
+
 </body>
 </html>
