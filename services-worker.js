@@ -1,7 +1,7 @@
 // Nombre del caché
-const CACHE_NAME = "colviseg-cache-v1";
+const CACHE_NAME = "colviseg-cache-v2";
 
-// Archivos a cachear (solo assets estáticos)
+// Archivos estáticos a cachear
 const ASSETS = [
   "/manifest.json",
   "/css/styles.css",
@@ -11,8 +11,8 @@ const ASSETS = [
   "/assets/img-pwa/icon_512.png"
 ];
 
-// Rutas de autenticación que NO deben pasar por SW
-const authRoutes = ["login", "logout", "cerrar", "session", "auth"];
+// Rutas que NO deben pasar por SW
+const authRoutes = ["login", "logout", "cerrar", "session", "auth", "index", "dashboard"];
 
 // Cola de solicitudes POST offline
 const queueName = "post-queue";
@@ -35,9 +35,8 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
+        keys.filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key))
       )
     )
   );
@@ -49,18 +48,18 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // 🔥 Bloquear rutas de login/logout/sesión
+  // Evitar que el SW intercepte login/dashboard/logout/index.php
   if (authRoutes.some(x => url.pathname.includes(x))) {
     event.respondWith(fetch(req));
     return;
   }
 
-  // 🔥 Bloquear TODAS las rutas dinámicas .php (con o sin parámetros)
-  if (req.method === "GET" && url.pathname.includes(".php")) {
+  // Bloquear todo PHP en offline (evita loops)
+  if (req.method === "GET" && url.pathname.endsWith(".php")) {
     event.respondWith(
-      fetch(req)
-        .then(res => res)
-        .catch(() => caches.match(req) || new Response("Offline", { status: 503 }))
+      fetch(req).catch(() => 
+        new Response("Offline", { status: 503, statusText: "Offline" })
+      )
     );
     return;
   }
@@ -73,7 +72,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // POST (tickets offline)
+  // POST (envío offline)
   if (req.method === "POST") {
     event.respondWith(
       fetch(req).catch(async () => {
@@ -84,7 +83,7 @@ self.addEventListener("fetch", (event) => {
           data[pair[0]] = pair[1];
         }
 
-        const save = { url: req.url, data: data, ts: Date.now() };
+        const save = { url: req.url, data, ts: Date.now() };
 
         const db = await openDB();
         const tx = db.transaction(queueName, "readwrite");
@@ -94,7 +93,7 @@ self.addEventListener("fetch", (event) => {
           JSON.stringify({
             ok: false,
             offline: true,
-            message: "Sin internet. El ticket se enviará automáticamente."
+            message: "Sin internet. Se enviará automáticamente."
           }),
           { headers: { "Content-Type": "application/json" } }
         );
@@ -115,13 +114,11 @@ function openDB() {
       }
     };
 
-    req.onsuccess = function () {
-      resolve(req.result);
-    };
+    req.onsuccess = () => resolve(req.result);
   });
 }
 
-// BACKGROUND SYNC
+// Background Sync
 self.addEventListener("sync", async (event) => {
   if (event.tag === "sync-post-queue") {
     const db = await openDB();
@@ -140,7 +137,7 @@ self.addEventListener("sync", async (event) => {
           });
           store.delete(cursor.key);
         } catch (error) {
-          console.warn("Internet no disponible, reintentando luego…");
+          console.warn("Sin internet, se intenta luego…");
         }
 
         cursor.continue();
@@ -149,7 +146,7 @@ self.addEventListener("sync", async (event) => {
   }
 });
 
-// Convertir JSON → FormData
+// Convert JSON → FormData
 function convertToFormData(obj) {
   const fd = new FormData();
   for (let k in obj) fd.append(k, obj[k]);
