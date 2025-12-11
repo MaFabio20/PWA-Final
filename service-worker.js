@@ -3,7 +3,7 @@ const CACHE_NAME = "colviseg-cache-v1";
 
 // Archivos a cachear (solo assets estáticos, no páginas dinámicas)
 const ASSETS = [
-  "/",  // Esto podría ser problemático si es dinámico; considera removerlo o cachearlo solo si es estático
+  // Esto podría ser problemático si es dinámico; considera removerlo o cachearlo solo si es estático
   "/manifest.json",
   "/css/styles.css",
   "/js/app.js",
@@ -50,27 +50,29 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Para páginas dinámicas (ej. .php): Network First, pero evitar loops
-  if (req.method === "GET" && url.pathname.endsWith('.php')) {
+  // Evitar SW en llamadas de login/logout
+  if (url.pathname.includes("login") || url.pathname.includes("logout")) {
+    event.respondWith(fetch(req));
+    return;
+  }
+
+  // Evitar cache para todo lo que sea .php
+  if (req.method === "GET" && url.pathname.endsWith(".php")) {
     event.respondWith(
       fetch(req)
-        .then((res) => {
-          // Si es una redirección, no cachear
-          if (res.redirected) {
-            return res;
-          }
-          return res;
-        })
-        .catch(() => {
-          // Si falla la red, intenta cache solo una vez
-          return caches.match(req) || new Response("Offline", { status: 503 });
-        })
+        .then(res => res)
+        .catch(() => new Response("Offline", { status: 503 }))
     );
     return;
   }
 
-  // Resto igual...
-
+  // Cache First para assets estáticos
+  if (req.method === "GET") {
+    event.respondWith(
+      caches.match(req).then((cached) => cached || fetch(req))
+    );
+    return;
+  }
 
   // Para assets estáticos: Cache First
   if (req.method === "GET") {
