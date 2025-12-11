@@ -1,16 +1,13 @@
 // Nombre del caché
 const CACHE_NAME = "colviseg-cache-v1";
 
-// Archivos a cachear
+// Archivos a cachear (solo assets estáticos, no páginas dinámicas)
 const ASSETS = [
-  "/",
-  "/index.php",
-  "/dashboard.php",
+  "/",  // Esto podría ser problemático si es dinámico; considera removerlo o cachearlo solo si es estático
   "/manifest.json",
-  "/css/styles.css",
+  "/assets/css/styles.css",
   "/js/app.js",
   "/assets/img-pwa/icon_192.png",
-  "/assets/img-pwa/favicon.png",
   "/assets/img-pwa/icon_512.png"
 ];
 
@@ -27,7 +24,6 @@ self.addEventListener("install", (event) => {
           console.log(`Cacheado exitosamente: ${asset}`);
         } catch (error) {
           console.warn(`Error al cachear ${asset}:`, error);
-          // Aquí puedes decidir ignorar el error o manejarlo de otra forma
         }
       }
     })
@@ -49,11 +45,28 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// FETCH — Cache First para GET
+// FETCH — Network First para páginas dinámicas (.php), Cache First para assets
 self.addEventListener("fetch", (event) => {
   const req = event.request;
+  const url = new URL(req.url);
 
-  // GET (páginas, CSS, imágenes...)
+  // Para páginas dinámicas (ej. .php): Network First
+  if (req.method === "GET" && url.pathname.endsWith('.php')) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          // Opcional: cachear la respuesta si quieres (pero no recomendado para sesiones)
+          return res;
+        })
+        .catch(() => {
+          // Si falla la red, intenta cache (por si acaso)
+          return caches.match(req) || new Response("Offline", { status: 503 });
+        })
+    );
+    return;
+  }
+
+  // Para assets estáticos: Cache First
   if (req.method === "GET") {
     event.respondWith(
       caches.match(req).then((res) => res || fetch(req))
@@ -61,7 +74,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // POST (tickets)
+  // POST (tickets) — Sin cambios
   if (req.method === "POST") {
     event.respondWith(
       fetch(req).catch(async () => {
