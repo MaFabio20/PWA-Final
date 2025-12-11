@@ -1,9 +1,8 @@
 // Nombre del caché
 const CACHE_NAME = "colviseg-cache-v1";
 
-// Archivos a cachear (solo assets estáticos, no páginas dinámicas)
+// Archivos a cachear (solo assets estáticos)
 const ASSETS = [
-  // Esto podría ser problemático si es dinámico; considera removerlo o cachearlo solo si es estático
   "/manifest.json",
   "/css/styles.css",
   "/js/app.js",
@@ -12,27 +11,26 @@ const ASSETS = [
   "/assets/img-pwa/icon_512.png"
 ];
 
+// Rutas de autenticación que NO deben pasar por SW
+const authRoutes = ["login", "logout", "cerrar", "session", "auth"];
+
 // Cola de solicitudes POST offline
 const queueName = "post-queue";
 
-// INSTALACIÓN — Cachear archivos (corregido: loop con manejo de errores)
+// INSTALACIÓN
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
       for (const asset of ASSETS) {
-        try {
-          await cache.add(asset);
-          console.log(`Cacheado exitosamente: ${asset}`);
-        } catch (error) {
-          console.warn(`Error al cachear ${asset}:`, error);
-        }
+        try { await cache.add(asset); }
+        catch (error) { console.warn("Error cacheando", asset); }
       }
     })
   );
   self.skipWaiting();
 });
 
-// ACTIVACIÓN — Limpiar caches viejos
+// ACTIVACIÓN
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -46,28 +44,28 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// FETCH — Network First para páginas dinámicas (.php), Cache First para assets
+// FETCH
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Evitar SW en llamadas de login/logout
-  if (url.pathname.includes("login") || url.pathname.includes("logout")) {
+  // 🔥 Bloquear rutas de login/logout/sesión
+  if (authRoutes.some(x => url.pathname.includes(x))) {
     event.respondWith(fetch(req));
     return;
   }
 
-  // Evitar cache para todo lo que sea .php
-  if (req.method === "GET" && url.pathname.endsWith(".php")) {
+  // 🔥 Bloquear TODAS las rutas dinámicas .php (con o sin parámetros)
+  if (req.method === "GET" && url.pathname.includes(".php")) {
     event.respondWith(
       fetch(req)
         .then(res => res)
-        .catch(() => new Response("Offline", { status: 503 }))
+        .catch(() => caches.match(req) || new Response("Offline", { status: 503 }))
     );
     return;
   }
 
-  // Cache First para assets estáticos
+  // Cache First para archivos estáticos
   if (req.method === "GET") {
     event.respondWith(
       caches.match(req).then((cached) => cached || fetch(req))
@@ -75,32 +73,19 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Para assets estáticos: Cache First
-  if (req.method === "GET") {
-    event.respondWith(
-      caches.match(req).then((res) => res || fetch(req))
-    );
-    return;
-  }
-
-  // POST (tickets) — Sin cambios
+  // POST (tickets offline)
   if (req.method === "POST") {
     event.respondWith(
       fetch(req).catch(async () => {
         const body = await req.clone().formData();
-        const data = {};
+        let data = {};
 
         for (let pair of body.entries()) {
           data[pair[0]] = pair[1];
         }
 
-        const save = {
-          url: req.url,
-          data: data,
-          ts: Date.now()
-        };
+        const save = { url: req.url, data: data, ts: Date.now() };
 
-        // Guardar en IndexedDB
         const db = await openDB();
         const tx = db.transaction(queueName, "readwrite");
         tx.objectStore(queueName).add(save);
@@ -118,7 +103,7 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-// IndexedDB para almacenamiento de POST offline
+// IndexedDB
 function openDB() {
   return new Promise((resolve) => {
     const req = indexedDB.open("colviseg-db", 1);
@@ -136,7 +121,7 @@ function openDB() {
   });
 }
 
-// BACKGROUND SYNC — Reenviar POST cuando vuelva internet
+// BACKGROUND SYNC
 self.addEventListener("sync", async (event) => {
   if (event.tag === "sync-post-queue") {
     const db = await openDB();
@@ -153,10 +138,9 @@ self.addEventListener("sync", async (event) => {
             method: "POST",
             body: convertToFormData(item.data)
           });
-
           store.delete(cursor.key);
         } catch (error) {
-          console.warn("Internet no disponible, reintentando luego...");
+          console.warn("Internet no disponible, reintentando luego…");
         }
 
         cursor.continue();
