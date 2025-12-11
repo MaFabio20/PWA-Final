@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 if (isset($_SESSION['user'])) header("Location: dashboard.php");
@@ -46,6 +45,15 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
   </div>
 
   <script>
+    // Verificar sesión offline al cargar la página
+    window.addEventListener('load', () => {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      if (isLoggedIn === 'true') {
+        // Redirigir automáticamente si hay sesión offline
+        window.location.href = "dashboard.php";
+      }
+    });
+
     function login(event) {
       event.preventDefault();
 
@@ -59,12 +67,24 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
       .then(r => r.json())
       .then(data => {
         if (data.status === "ok") {
+          // Login exitoso online: almacenar sesión
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userToken', data.token || 'dummy-token'); // Almacena token si lo devuelve el servidor
           window.location.href = "dashboard.php";
         } else {
           mostrarError("Usuario o contraseña incorrectos");
         }
       })
-      .catch(err => mostrarError("Error de conexión con el servidor"));
+      .catch(err => {
+        // Error de conexión: intentar login offline
+        const previousToken = localStorage.getItem('userToken');
+        if (previousToken) {
+          mostrarError("Login offline: Usando sesión previa. Redirigiendo...");
+          setTimeout(() => window.location.href = "dashboard.php", 2000); // Redirigir después de 2 segundos
+        } else {
+          mostrarError("Sin conexión. No hay sesión previa. Intenta cuando tengas internet.");
+        }
+      });
     }
 
     function mostrarError(msg) {
@@ -76,6 +96,19 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
         i.classList.add("input-error");
         setTimeout(() => i.classList.remove("input-error"), 500);
       });
+    }
+
+    // Registrar el Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js') // Cambia '/sw.js' si tu SW está en otra ruta
+        .then(registration => {
+          console.log('Service Worker registrado:', registration);
+          // Registrar sync para reenvío offline (útil para tickets en otras páginas)
+          if ('sync' in registration) {
+            registration.sync.register('sync-post-queue');
+          }
+        })
+        .catch(error => console.log('Error registrando SW:', error));
     }
   </script>
 
