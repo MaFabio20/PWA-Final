@@ -53,40 +53,64 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 
   <!-- SCRIPT DE VALIDACIÓN Y ANIMACIÓN -->
   <script>
-    function login(event) {
-      event.preventDefault();
+   function login(event) {
+  event.preventDefault();
 
-      const form = document.querySelector('.login-form');
-      const formData = new FormData(form);
+  const form = document.querySelector('.login-form');
+  const formData = new FormData(form);
+  const usuario = formData.get("usuario");
+  const password = formData.get("password");
 
-      fetch("api/login.php", {
-        method: "POST",
-        body: formData
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.status === "ok") {
-          window.location.href = "dashboard.php"; // Redirección correcta
-        } else {
-          mostrarError("Usuario o contraseña incorrectos");
-        }
-      });
+  // --------------------------------------------------
+  // 1. SI HAY INTERNET → login normal + guardar offline
+  // --------------------------------------------------
+  if (navigator.onLine) {
+    fetch("api/login.php", {
+      method: "POST",
+      body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === "ok") {
 
+        // Guardamos el último login correcto
+        localStorage.setItem("offlineLogin", JSON.stringify({
+          usuario: usuario,
+          password: password // plano porque tu sistema usa plano
+        }));
+
+        window.location.href = "dashboard.php";
+      } else {
+        mostrarError("Usuario o contraseña incorrectos");
+      }
+    })
+    .catch(() => mostrarError("Error de conexión"));
+  }
+
+  // --------------------------------------------------
+  // 2. LOGIN OFFLINE (SIN INTERNET)
+  // --------------------------------------------------
+  else {
+    const saved = localStorage.getItem("offlineLogin");
+
+    if (!saved) {
+      mostrarError("No es posible iniciar sin conexión. Inicia una vez con internet.");
       return false;
     }
 
-    // Animación + texto
-    function mostrarError(msg) {
-      const err = document.getElementById("error-msg");
-      err.innerText = msg;
+    const data = JSON.parse(saved);
 
-      const inputs = document.querySelectorAll(".login-form input");
-
-      inputs.forEach(i => {
-          i.classList.add("input-error");
-          setTimeout(() => i.classList.remove("input-error"), 500);
-      });
+    // Comparamos con el último login exitoso
+    if (usuario === data.usuario && password === data.password) {
+      window.location.href = "dashboard.php"; // acceso offline
+    } else {
+      mostrarError("Credenciales no coinciden con el último inicio de sesión.");
     }
+  }
+
+  return false;
+}
+
   </script>
 
   <!-- REGISTRO CORRECTO DEL SERVICE WORKER -->
