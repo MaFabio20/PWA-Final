@@ -16,11 +16,19 @@ const ASSETS = [
 // Cola de solicitudes POST offline
 const queueName = "post-queue";
 
-// INSTALACIÓN — Cachear archivos
+// INSTALACIÓN — Cachear archivos (corregido: loop con manejo de errores)
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of ASSETS) {
+        try {
+          await cache.add(asset);
+          console.log(`Cacheado exitosamente: ${asset}`);
+        } catch (error) {
+          console.warn(`Error al cachear ${asset}:`, error);
+          // Aquí puedes decidir ignorar el error o manejarlo de otra forma
+        }
+      }
     })
   );
   self.skipWaiting();
