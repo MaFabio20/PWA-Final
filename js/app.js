@@ -1,3 +1,10 @@
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js")
+    .then(() => console.log("SW registrado"))
+    .catch(err => console.log("Error SW:", err));
+}
+
+
 // Install prompt
 let deferredPrompt;
 
@@ -30,8 +37,3 @@ function applyFilter(){
   });
 }
 
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js")
-    .then(() => console.log("SW Registrado"))
-    .catch(err => console.error("Error SW:", err));
-}

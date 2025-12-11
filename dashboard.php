@@ -174,14 +174,8 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
   </section>
 </main>
 
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js")
-    .then(() => console.log("SW registrado"))
-    .catch(err => console.log("Error SW:", err));
-}
-</script>
 
-<script src="js/app.js"></script>
+
+<script src="./js/app.js"></script>
 </body>
 </html>
