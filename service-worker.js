@@ -5,7 +5,7 @@ const CACHE_NAME = "colviseg-cache-v1";
 const ASSETS = [
   "/",  // Esto podría ser problemático si es dinámico; considera removerlo o cachearlo solo si es estático
   "/manifest.json",
-  "/assets/css/styles.css",
+  "/css/styles.css",
   "/js/app.js",
   "/assets/img-pwa/icon_192.png",
   "/assets/img-pwa/icon_512.png"
