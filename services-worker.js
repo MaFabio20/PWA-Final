@@ -1,7 +1,7 @@
 const CACHE_NAME = "colviseg-v1";
 
 const ASSETS = [
-  "/index.php",  // Removed "/" as it's not cacheable; start with your main page
+  "/index.php",  // Asegúrate de que este archivo exista y sea accesible
   "/dashboard.php",
   "/css/styles.css",
   "/js/app.js",

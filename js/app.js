@@ -1,18 +1,26 @@
 // ==============================================
 // REGISTRAR SERVICE WORKER
 // ==============================================
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/service-worker.js").then(reg => {
-      console.log("SW registrado", reg);
-
-      // Para Background Sync
-      if ("sync" in reg) {
-        reg.sync.register("sync-ticket-queue");
-      }
-    });
-  });
-}
+   if ('serviceWorker' in navigator) {
+       navigator.serviceWorker.register('/service-worker.js')
+         .then(registration => {
+           console.log('SW registrado:', registration);
+           // Espera a que esté activo antes de registrar sync
+           return navigator.serviceWorker.ready;
+         })
+         .then(registration => {
+           // Ahora registra el background sync (solo si es soportado)
+           if ('sync' in registration) {
+             registration.sync.register('mi-sync-tag')  // Cambia 'mi-sync-tag' por tu tag
+               .then(() => console.log('Sync registrado'))
+               .catch(err => console.error('Error registrando sync:', err));
+           } else {
+             console.warn('Background sync no soportado en este navegador');
+           }
+         })
+         .catch(err => console.error('Error registrando SW:', err));
+     }
+     
 
 // ==============================================
 // LOGIN OFFLINE
