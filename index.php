@@ -44,6 +44,63 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
     <div class="login-right"></div>
   </div>
 
-  
+  <script>
+    // Verificar sesión offline al cargar la página
+    window.addEventListener('load', () => {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      if (isLoggedIn === 'true') {
+        // Redirigir automáticamente si hay sesión offline
+        window.location.href = "dashboard.php";
+      }
+    });
+
+    function login(event) {
+      event.preventDefault();
+
+      const form = document.querySelector('.login-form');
+      const formData = new FormData(form);
+
+      fetch("./api/login.php", {
+        method: "POST",
+        body: formData
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === "ok") {
+          // Login exitoso online: almacenar flag de sesión
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userToken', 'logged-in'); // Flag simple (no token real)
+          window.location.href = "dashboard.php";
+        } else {
+          mostrarError("Usuario o contraseña incorrectos");
+        }
+      })
+      .catch(err => {
+        // Error de conexión: intentar login offline
+        const previousToken = localStorage.getItem('userToken');
+        if (previousToken === 'logged-in') {
+          mostrarError("Login offline: Usando sesión previa. Redirigiendo...");
+          setTimeout(() => window.location.href = "dashboard.php", 2000); // Redirigir después de 2 segundos
+        } else {
+          mostrarError("Sin conexión. No hay sesión previa. Intenta cuando tengas internet.");
+        }
+      });
+    }
+
+    function mostrarError(msg) {
+      const err = document.getElementById("error-msg");
+      err.innerText = msg;
+
+      const inputs = document.querySelectorAll(".login-form input");
+      inputs.forEach(i => {
+        i.classList.add("input-error");
+        setTimeout(() => i.classList.remove("input-error"), 500);
+      });
+    }
+
+    // Registrar el Service Worker
+    
+    
+  </script>
 </body>
 </html>
