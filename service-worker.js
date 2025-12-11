@@ -13,36 +13,34 @@ const ASSETS = [
   "/assets/img-pwa/icon_512.png"
 ];
 
-// Cola para almacenar POST pendientes
+// Cola para POST offline
 const queueName = "post-queue";
 
-// Instalar SW y cachear archivos
+// INSTALACIÓN -----------------------------------------------------------
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_URLS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
 
-// Activar SW y limpiar caches antiguos
+// ACTIVACIÓN ------------------------------------------------------------
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       )
     )
   );
   self.clients.claim();
 });
 
-// Interceptar peticiones
+// FETCH ------------------------------------------------------------
 self.addEventListener("fetch", (event) => {
   const req = event.request;
 
-  // Si es GET → usar cache first
+  // Si es GET → cache first
   if (req.method === "GET") {
     event.respondWith(
       caches.match(req).then((res) => res || fetch(req))
@@ -57,13 +55,14 @@ self.addEventListener("fetch", (event) => {
         // Guardar POST en cola
         const body = await req.clone().formData();
         const data = {};
+
         for (let pair of body.entries()) {
           data[pair[0]] = pair[1];
         }
 
         const queued = {
           url: req.url,
-          data: data,
+          data,
           timestamp: Date.now()
         };
 
@@ -74,16 +73,18 @@ self.addEventListener("fetch", (event) => {
         return new Response(
           JSON.stringify({
             offline: true,
-            message: "Ticket guardado offline. Se enviará cuando vuelva internet."
+            message: "Sin Internet. El ticket se enviará cuando vuelva la conexión."
           }),
-          { headers: { "Content-Type": "application/json" } }
+          {
+            headers: { "Content-Type": "application/json" }
+          }
         );
       })
     );
   }
 });
 
-// Base de datos IndexedDB para cola de POST
+// IndexedDB ----------------------------------------------------------
 function openDB() {
   return new Promise((resolve) => {
     const request = indexedDB.open("colviseg-db", 1);
@@ -101,14 +102,14 @@ function openDB() {
   });
 }
 
-// Reintentar enviar POST cuando vuelve la conexión
+// REINTENTAR ENVÍO -------------------------------------------------------
 self.addEventListener("sync", async (event) => {
   if (event.tag === "sync-post-queue") {
     const db = await openDB();
     const tx = db.transaction(queueName, "readwrite");
     const store = tx.objectStore(queueName);
 
-    store.openCursor().onsuccess = async function (e) {
+    store.openCursor().onsuccess = async (e) => {
       const cursor = e.target.result;
       if (cursor) {
         const item = cursor.value;
@@ -119,8 +120,8 @@ self.addEventListener("sync", async (event) => {
             body: convertToFormData(item.data)
           });
           store.delete(cursor.key);
-        } catch (error) {
-          console.log("Aún sin internet para enviar ticket.");
+        } catch (err) {
+          console.log("Sin internet para reenviar ticket.");
         }
 
         cursor.continue();
@@ -129,11 +130,9 @@ self.addEventListener("sync", async (event) => {
   }
 });
 
-// Convertir JSON → FormData
+// Convertir JSON→FormData
 function convertToFormData(obj) {
   const form = new FormData();
-  for (let key in obj) {
-    form.append(key, obj[key]);
-  }
+  for (let k in obj) form.append(k, obj[k]);
   return form;
 }

@@ -176,7 +176,7 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register('./service-worker.js')
         .then(() => console.log('SW instalado'))
         .catch(e => console.log('Error SW:', e));
 }
