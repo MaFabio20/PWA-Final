@@ -7,16 +7,16 @@ const ASSETS = [
   "/index.php",
   "/dashboard.php",
   "/manifest.json",
-  "/js/app.js",
   "/assets/css/styles.css",
+  "/js/app.js",
   "/assets/img-pwa/icon_192.png",
   "/assets/img-pwa/icon_512.png"
 ];
 
-// Nombre de la cola para POST offline
+// Cola de solicitudes POST offline
 const queueName = "post-queue";
 
-// INSTALACIÓN DEL SERVICE WORKER
+// INSTALACIÓN — Cachear archivos
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -26,7 +26,7 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// ACTIVACIÓN: elimina cachés antiguos
+// ACTIVACIÓN — Limpiar caches viejos
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -40,43 +40,45 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// INTERCEPTAR PETICIONES
+// FETCH — Cache First para GET
 self.addEventListener("fetch", (event) => {
   const req = event.request;
 
-  // Manejo GET → Cache First
+  // GET (páginas, CSS, imágenes...)
   if (req.method === "GET") {
     event.respondWith(
-      caches.match(req).then((cached) => cached || fetch(req))
+      caches.match(req).then((res) => res || fetch(req))
     );
     return;
   }
 
-  // Manejo POST → Guardar offline
+  // POST (tickets)
   if (req.method === "POST") {
     event.respondWith(
       fetch(req).catch(async () => {
-        const form = await req.clone().formData();
+        const body = await req.clone().formData();
         const data = {};
 
-        for (let pair of form.entries()) {
+        for (let pair of body.entries()) {
           data[pair[0]] = pair[1];
         }
+
+        const save = {
+          url: req.url,
+          data: data,
+          ts: Date.now()
+        };
 
         // Guardar en IndexedDB
         const db = await openDB();
         const tx = db.transaction(queueName, "readwrite");
-        tx.objectStore(queueName).add({
-          url: req.url,
-          data: data,
-          timestamp: Date.now()
-        });
+        tx.objectStore(queueName).add(save);
 
         return new Response(
           JSON.stringify({
+            ok: false,
             offline: true,
-            message:
-              "Ticket guardado offline. Se enviará automáticamente cuando vuelva Internet."
+            message: "Sin internet. El ticket se enviará automáticamente."
           }),
           { headers: { "Content-Type": "application/json" } }
         );
@@ -85,62 +87,56 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-// ABRIR INDEXEDDB
+// IndexedDB para almacenamiento de POST offline
 function openDB() {
   return new Promise((resolve) => {
-    const request = indexedDB.open("colviseg-db", 1);
+    const req = indexedDB.open("colviseg-db", 1);
 
-    request.onupgradeneeded = () => {
-      const db = request.result;
+    req.onupgradeneeded = function () {
+      const db = req.result;
       if (!db.objectStoreNames.contains(queueName)) {
         db.createObjectStore(queueName, { autoIncrement: true });
       }
     };
 
-    request.onsuccess = () => resolve(request.result);
+    req.onsuccess = function () {
+      resolve(req.result);
+    };
   });
 }
 
-// BACKGROUND SYNC
-self.addEventListener("sync", (event) => {
+// BACKGROUND SYNC — Reenviar POST cuando vuelva internet
+self.addEventListener("sync", async (event) => {
   if (event.tag === "sync-post-queue") {
-    event.waitUntil(resendQueuedPosts());
+    const db = await openDB();
+    const tx = db.transaction(queueName, "readwrite");
+    const store = tx.objectStore(queueName);
+
+    store.openCursor().onsuccess = async function (e) {
+      const cursor = e.target.result;
+      if (cursor) {
+        const item = cursor.value;
+
+        try {
+          await fetch(item.url, {
+            method: "POST",
+            body: convertToFormData(item.data)
+          });
+
+          store.delete(cursor.key);
+        } catch (error) {
+          console.warn("Internet no disponible, reintentando luego...");
+        }
+
+        cursor.continue();
+      }
+    };
   }
 });
 
-// RECONECTAR POST GUARDADOS
-async function resendQueuedPosts() {
-  const db = await openDB();
-  const tx = db.transaction(queueName, "readwrite");
-  const store = tx.objectStore(queueName);
-
-  store.openCursor().onsuccess = async (e) => {
-    const cursor = e.target.result;
-
-    if (cursor) {
-      const item = cursor.value;
-
-      try {
-        await fetch(item.url, {
-          method: "POST",
-          body: convertToFormData(item.data)
-        });
-
-        store.delete(cursor.key);
-      } catch (err) {
-        console.log("Sin conexión todavía...");
-      }
-
-      cursor.continue();
-    }
-  };
-}
-
-// JSON → FormData
+// Convertir JSON → FormData
 function convertToFormData(obj) {
-  const form = new FormData();
-  for (const key in obj) {
-    form.append(key, obj[key]);
-  }
-  return form;
+  const fd = new FormData();
+  for (let k in obj) fd.append(k, obj[k]);
+  return fd;
 }
