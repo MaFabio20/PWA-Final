@@ -100,7 +100,7 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 
     // Registrar el Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js') // Cambia '/sw.js' si tu SW está en otra ruta
+      navigator.serviceWorker.register('/services-worker.js') // Cambia '/sw.js' si tu SW está en otra ruta
         .then(registration => {
           console.log('Service Worker registrado:', registration);
           // Registrar sync para reenvío offline (útil para tickets en otras páginas)
