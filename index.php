@@ -48,8 +48,10 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
     // Verificar sesión offline al cargar la página
     window.addEventListener('load', () => {
       const isLoggedIn = localStorage.getItem('isLoggedIn');
-      if (isLoggedIn === 'true') {
-        // Redirigir automáticamente si hay sesión offline
+      const offlineLogin = localStorage.getItem('offlineLogin');
+
+      // Evita el loop: solo redirige si el login fue ONLINE o si offlineLogin está activo
+      if (isLoggedIn === 'true' || offlineLogin === 'true') {
         window.location.href = "dashboard.php";
       }
     });
@@ -67,22 +69,27 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
       .then(r => r.json())
       .then(data => {
         if (data.status === "ok") {
-          // Login exitoso online: almacenar flag de sesión
+          // Login online exitoso
           localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('userToken', 'logged-in'); // Flag simple (no token real)
+          localStorage.setItem('userToken', 'logged-in');
+          localStorage.removeItem('offlineLogin'); // limpieza
           window.location.href = "dashboard.php";
         } else {
           mostrarError("Usuario o contraseña incorrectos");
         }
       })
       .catch(err => {
-        // Error de conexión: intentar login offline
+        // Modo offline: solo permitir si ya estuvo logueado antes ONLINE
         const previousToken = localStorage.getItem('userToken');
+
         if (previousToken === 'logged-in') {
-          mostrarError("Login offline: Usando sesión previa. Redirigiendo...");
-          setTimeout(() => window.location.href = "dashboard.php", 2000); // Redirigir después de 2 segundos
+          // marcar login offline solo por este acceso
+          localStorage.setItem('offlineLogin', 'true');
+
+          mostrarError("Modo offline: Sesión previa detectada. Entrando...");
+          setTimeout(() => window.location.href = "dashboard.php", 1500);
         } else {
-          mostrarError("Sin conexión. No hay sesión previa. Intenta cuando tengas internet.");
+          mostrarError("Sin conexión. No hay sesión previa. Intenta nuevamente cuando tengas internet.");
         }
       });
     }
@@ -98,9 +105,10 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
       });
     }
 
-    // Registrar el Service Worker
-    
-    
+    // Registrar el Service Worker (si aplica, aquí lo puedes colocar después)
+    // if ('serviceWorker' in navigator) {
+    //   navigator.serviceWorker.register('sw.js');
+    // }
   </script>
 </body>
 </html>
