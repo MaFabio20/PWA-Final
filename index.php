@@ -67,9 +67,9 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
       .then(r => r.json())
       .then(data => {
         if (data.status === "ok") {
-          // Login exitoso online: almacenar sesión
+          // Login exitoso online: almacenar flag de sesión
           localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('userToken', data.token || 'dummy-token'); // Almacena token si lo devuelve el servidor
+          localStorage.setItem('userToken', 'logged-in'); // Flag simple (no token real)
           window.location.href = "dashboard.php";
         } else {
           mostrarError("Usuario o contraseña incorrectos");
@@ -78,7 +78,7 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
       .catch(err => {
         // Error de conexión: intentar login offline
         const previousToken = localStorage.getItem('userToken');
-        if (previousToken) {
+        if (previousToken === 'logged-in') {
           mostrarError("Login offline: Usando sesión previa. Redirigiendo...");
           setTimeout(() => window.location.href = "dashboard.php", 2000); // Redirigir después de 2 segundos
         } else {
@@ -100,10 +100,10 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 
     // Registrar el Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/services-worker.js') // Cambia '/sw.js' si tu SW está en otra ruta
+      navigator.serviceWorker.register('/sw.js') // Cambia '/sw.js' si tu SW está en otra ruta
         .then(registration => {
           console.log('Service Worker registrado:', registration);
-          // Registrar sync para reenvío offline (útil para tickets en otras páginas)
+          // Registrar sync para reenvío offline (útil para tickets en dashboard)
           if ('sync' in registration) {
             registration.sync.register('sync-post-queue');
           }
@@ -111,6 +111,50 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
         .catch(error => console.log('Error registrando SW:', error));
     }
   </script>
+<script>
+  // Función para mostrar mensajes (agrega un div en tu HTML, ej. <div id="messages"></div>)
+  function showMessage(message, type = 'info') {
+    const messagesDiv = document.getElementById('messages');
+    messagesDiv.innerHTML = `<p class="${type}">${message}</p>`;
+    setTimeout(() => messagesDiv.innerHTML = '', 5000);
+  }
 
+  // Manejar envío de tickets
+  document.getElementById('ticketForm').addEventListener('submit', async (e) => { // Cambia 'ticketForm' por el ID real de tu form
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    try {
+      const response = await fetch('/api/submit-ticket.php', { // Cambia por tu endpoint real
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.status === "ok") { // Asume que devuelve {'status': 'ok'}
+        showMessage('Ticket enviado exitosamente!', 'success');
+        e.target.reset();
+      } else if (result.offline) {
+        // Offline: El SW ya lo guardó
+        showMessage(result.message, 'warning');
+        e.target.reset();
+      } else {
+        showMessage('Error al enviar ticket: ' + (result.msg || 'Desconocido'), 'error');
+      }
+    } catch (error) {
+      showMessage('Error de conexión. El ticket se enviará offline.', 'warning');
+    }
+  });
+
+  // Verificar sesión offline al cargar (opcional, para asegurar que esté logueado)
+  window.addEventListener('load', () => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn !== 'true') {
+      // Si no hay sesión, redirigir a login
+      window.location.href = "index.php";
+    }
+  });
+</script>
 </body>
 </html>
