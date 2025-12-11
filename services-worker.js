@@ -27,12 +27,6 @@ self.addEventListener("activate", e => {
 
 // FETCH — Network First con fallback a caché
 self.addEventListener("fetch", e => {
-
-  // ⛔ IMPORTANTE: No cachear POST, login, envíos de ticket, AJAX, etc.
-  if (e.request.method !== "GET") {
-    return;
-  }
-
   e.respondWith(
     fetch(e.request)
       .then(res => {
