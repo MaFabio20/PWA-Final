@@ -50,21 +50,27 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Para páginas dinámicas (ej. .php): Network First
+  // Para páginas dinámicas (ej. .php): Network First, pero evitar loops
   if (req.method === "GET" && url.pathname.endsWith('.php')) {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          // Opcional: cachear la respuesta si quieres (pero no recomendado para sesiones)
+          // Si es una redirección, no cachear
+          if (res.redirected) {
+            return res;
+          }
           return res;
         })
         .catch(() => {
-          // Si falla la red, intenta cache (por si acaso)
+          // Si falla la red, intenta cache solo una vez
           return caches.match(req) || new Response("Offline", { status: 503 });
         })
     );
     return;
   }
+
+  // Resto igual...
+
 
   // Para assets estáticos: Cache First
   if (req.method === "GET") {
