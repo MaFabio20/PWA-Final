@@ -1,39 +1,73 @@
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./service-worker.js")
-    .then(() => console.log("SW registrado"))
-    .catch(err => console.log("Error SW:", err));
+// ==============================================
+// REGISTRAR SERVICE WORKER
+// ==============================================
+   if ('serviceWorker' in navigator) {
+       navigator.serviceWorker.register('/service-worker.js')
+         .then(registration => {
+           console.log('SW registrado:', registration);
+           // Espera a que esté activo antes de registrar sync
+           return navigator.serviceWorker.ready;
+         })
+         .then(registration => {
+           // Ahora registra el background sync (solo si es soportado)
+           if ('sync' in registration) {
+             registration.sync.register('mi-sync-tag')  // Cambia 'mi-sync-tag' por tu tag
+               .then(() => console.log('Sync registrado'))
+               .catch(err => console.error('Error registrando sync:', err));
+           } else {
+             console.warn('Background sync no soportado en este navegador');
+           }
+         })
+         .catch(err => console.error('Error registrando SW:', err));
+     }
+     
+
+// ==============================================
+// LOGIN OFFLINE
+// ==============================================
+async function loginOffline(user, pass) {
+  const savedUser = localStorage.getItem("user");
+  const savedPass = localStorage.getItem("pass");
+
+  return user === savedUser && pass === savedPass;
 }
 
+// ==============================================
+// LOGIN NORMAL + OFFLINE
+// ==============================================
+window.login = function (event) {
+  event.preventDefault();
 
-// Install prompt
-let deferredPrompt;
+  const form = document.querySelector(".login-form");
+  const data = new FormData(form);
+  const user = data.get("usuario");
+  const pass = data.get("password");
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
-// Mostrar el cuadro para instalar
-function promptInstall(){
-  if (deferredPrompt){
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
+  // Intento ONLINE
+  fetch("api/login.php", { method: "POST", body: data })
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === "ok") {
+        localStorage.setItem("user", user);
+        localStorage.setItem("pass", pass);
+        window.location.href = "dashboard.php";
+      } else {
+        mostrarError("Credenciales incorrectas");
+      }
+    })
+    .catch(async () => {
+      // Intento OFFLINE
+      const ok = await loginOffline(user, pass);
+      if (ok) {
+        window.location.href = "dashboard.php";
+      } else {
+        mostrarError("Sin conexión y sin sesión previa.");
+      }
     });
-  }
+};
+
+// Mensajes visuales
+function mostrarError(msg) {
+  const e = document.getElementById("error-msg");
+  e.innerText = msg;
 }
-
-// Filtro de tickets
-function applyFilter(){
-  const f = document.getElementById('filterState').value;
-  const tickets = document.querySelectorAll('.ticket');
-
-  tickets.forEach(t => {
-    if (f === 'todos' || t.dataset.estado === f) {
-      t.style.display = '';
-    } else {
-      t.style.display = 'none';
-    }
-  });
-}
-

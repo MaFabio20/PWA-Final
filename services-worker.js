@@ -1,4 +1,4 @@
-const CACHE_NAME = "colviseg-v1";
+const CACHE_NAME = "colviseg-v2";
 
 const ASSETS = [
   "/",
@@ -22,25 +22,45 @@ self.addEventListener("install", e => {
 
 // ACTIVACIÓN
 self.addEventListener("activate", e => {
-  e.waitUntil(clients.claim());
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      )
+    )
+  );
+
+  self.clients.claim();
 });
 
-// FETCH — Network First con fallback a caché
+
+// FETCH — CACHE FIRST para HTML y PHP
 self.addEventListener("fetch", e => {
+
+  // Interceptamos todo
   e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        // Guardar copia en caché
-        const resClone = res.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(e.request, resClone);
+    caches.match(e.request).then(cached => {
+      // Si existe en caché, devolverlo INMEDIATO (OFFLINE FUNCIONA)
+      if (cached) return cached;
+
+      // Si no existe → intentar red con fallback
+      return fetch(e.request)
+        .then(res => {
+          // Guardamos una copia EN CACHÉ (incluye HTML generado del PHP)
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(e.request, clone);
+          });
+          return res;
+        })
+        .catch(() => {
+          // Si no hay internet, devolver INDEX como fallback
+          if (e.request.mode === "navigate") {
+            return caches.match("/index.php");
+          }
         });
-        return res;
-      })
-      .catch(() => {
-        // Si falla la red → servir desde caché
-        return caches.match(e.request)
-          .then(cached => cached || caches.match("/index.php"));
-      })
+    })
   );
 });
