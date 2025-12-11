@@ -8,6 +8,7 @@ const ASSETS = [
   "/css/styles.css",
   "/js/app.js",
   "/assets/img-pwa/icon_192.png",
+  "/assets/img-pwa/favicon.png",
   "/assets/img-pwa/icon_512.png"
 ];
 
