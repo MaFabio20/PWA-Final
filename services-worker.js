@@ -3,6 +3,8 @@ const CACHE_NAME = "colviseg-cache-v2";
 
 // Archivos estáticos a cachear
 const ASSETS = [
+  "/index.php",
+  "/dashboard.php",
   "/manifest.json",
   "/css/styles.css",
   "/js/app.js",
