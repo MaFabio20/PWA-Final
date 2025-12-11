@@ -1,40 +1,65 @@
+// ==============================================
+// REGISTRAR SERVICE WORKER
+// ==============================================
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js").then(reg => {
+      console.log("SW registrado", reg);
 
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./services-worker.js")
-      .then(() => console.log("Service Worker registrado correctamente"))
-      .catch(err => console.error("Error al registrar SW:", err));
-  }
-
-
-// Install prompt
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
-// Mostrar el cuadro para instalar
-function promptInstall(){
-  if (deferredPrompt){
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
+      // Para Background Sync
+      if ("sync" in reg) {
+        reg.sync.register("sync-ticket-queue");
+      }
     });
-  }
-}
-
-// Filtro de tickets
-function applyFilter(){
-  const f = document.getElementById('filterState').value;
-  const tickets = document.querySelectorAll('.ticket');
-
-  tickets.forEach(t => {
-    if (f === 'todos' || t.dataset.estado === f) {
-      t.style.display = '';
-    } else {
-      t.style.display = 'none';
-    }
   });
 }
 
+// ==============================================
+// LOGIN OFFLINE
+// ==============================================
+async function loginOffline(user, pass) {
+  const savedUser = localStorage.getItem("user");
+  const savedPass = localStorage.getItem("pass");
+
+  return user === savedUser && pass === savedPass;
+}
+
+// ==============================================
+// LOGIN NORMAL + OFFLINE
+// ==============================================
+window.login = function (event) {
+  event.preventDefault();
+
+  const form = document.querySelector(".login-form");
+  const data = new FormData(form);
+  const user = data.get("usuario");
+  const pass = data.get("password");
+
+  // Intento ONLINE
+  fetch("api/login.php", { method: "POST", body: data })
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === "ok") {
+        localStorage.setItem("user", user);
+        localStorage.setItem("pass", pass);
+        window.location.href = "dashboard.php";
+      } else {
+        mostrarError("Credenciales incorrectas");
+      }
+    })
+    .catch(async () => {
+      // Intento OFFLINE
+      const ok = await loginOffline(user, pass);
+      if (ok) {
+        window.location.href = "dashboard.php";
+      } else {
+        mostrarError("Sin conexión y sin sesión previa.");
+      }
+    });
+};
+
+// Mensajes visuales
+function mostrarError(msg) {
+  const e = document.getElementById("error-msg");
+  e.innerText = msg;
+}
