@@ -1,7 +1,7 @@
-const CACHE_NAME = "colviseg-v2";
+const CACHE_NAME = "colviseg-v3";  // Cambié a v3 para forzar actualización
 
 const ASSETS = [
-  "/",
+  "/",  // Opcional: quítalo si causa problemas
   "/index.php",
   "/dashboard.php",
   "/css/styles.css",
@@ -12,10 +12,19 @@ const ASSETS = [
   "/manifest.json"
 ];
 
-// INSTALACIÓN (sin cambios)
+// INSTALACIÓN — Mejorada para manejar errores
 self.addEventListener("install", e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache => {
+      // Cachear assets uno por uno, ignorando errores
+      const promises = ASSETS.map(url => {
+        return cache.add(url).catch(err => {
+          console.warn(`Failed to cache ${url}:`, err);  // Log para depuración
+          // No fallar todo: continúa con los demás
+        });
+      });
+      return Promise.all(promises);
+    })
   );
   self.skipWaiting();
 });
@@ -34,24 +43,20 @@ self.addEventListener("activate", e => {
   self.clients.claim();
 });
 
-// FETCH — CACHE FIRST mejorado para HTML y PHP
+// FETCH — CACHE FIRST (sin cambios, pero asegúrate de que funcione con el fallback anterior)
 self.addEventListener("fetch", e => {
-  // Solo interceptar solicitudes GET (evita cachear POST, login, etc.)
+  // Solo interceptar solicitudes GET
   if (e.request.method !== "GET") return;
 
   e.respondWith(
     caches.match(e.request).then(cached => {
-      // Si existe en caché, devolverlo INMEDIATO (OFFLINE FUNCIONA)
       if (cached) return cached;
 
-      // Si no existe → intentar red con fallback
       return fetch(e.request)
         .then(res => {
-          // Solo cachear respuestas exitosas (status 200)
           if (!res || res.status !== 200 || res.type !== "basic") {
-            return res; // No cachear errores o respuestas no básicas
+            return res;
           }
-          // Guardamos una copia EN CACHÉ (incluye HTML generado del PHP)
           const clone = res.clone();
           caches.open(CACHE_NAME).then(cache => {
             cache.put(e.request, clone);
@@ -59,13 +64,11 @@ self.addEventListener("fetch", e => {
           return res;
         })
         .catch(() => {
-          // Fallback mejorado para offline: SIEMPRE devolver una Response válida
+          // Fallback para offline
           if (e.request.mode === "navigate") {
-            // Intentar devolver la página específica si está en caché
             const fallbackUrl = e.request.url.includes("/dashboard.php") ? "/dashboard.php" : "/index.php";
             return caches.match(fallbackUrl).then(cached => {
               if (cached) return cached;
-              // Si no hay caché, devolver una página básica de offline
               return new Response(`
                 <!DOCTYPE html>
                 <html lang="es">
