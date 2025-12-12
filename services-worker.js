@@ -11,11 +11,24 @@ const ASSETS = [
 ];
 
 // INSTALACIÓN
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
-  self.skipWaiting();
+self.addEventListener("install", event => {
+    console.log("SW instalado");
+    event.waitUntil(
+        caches.open("v1").then(cache => {
+            return cache.addAll([
+                "/",
+                "/index.html",
+                "/login.html",
+                "/offline.html"
+            ]);
+        })
+    );
+});
+
+self.addEventListener("fetch", event => {
+    event.respondWith(
+        fetch(event.request).catch(() => caches.match(event.request))
+    );
 });
 
 // ACTIVACIÓN
