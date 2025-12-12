@@ -13,12 +13,13 @@ const ASSETS = [
 ];
 
 // INSTALACIÓN
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+self.addEventListener("install", e => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
+
 
 // ACTIVACIÓN
 self.addEventListener("activate", (event) => {
