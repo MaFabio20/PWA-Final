@@ -4,9 +4,9 @@
   if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/services-worker.js")
-      .then(() => console.log("SW registrado"))
-      .catch(err => console.log("Error SW:", err));
-  });
+    then(reg => console.log("SW registrado", reg))
+    .catch(err => console.error("Error SW", err));
+});
 }
 
      
