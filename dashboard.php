@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Permitir entrada offline si existe usuario guardado localmente
 if (!isset($_SESSION['user'])) {
     echo "<script>
       if (localStorage.getItem('user_offline')) {
@@ -190,32 +189,6 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script src="./js/app.js"></script>
 
-<script>
-if (!navigator.onLine) {
-  if (!localStorage.getItem("offlineLogin")) {
-      window.location.href = "index.php";
-  }
-}
-</script>
-<script>
-let deferredPrompt;
-
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-
-  // muestra un botón
-  const installBtn = document.getElementById("btnInstalar");
-  if (installBtn) installBtn.style.display = "block";
-
-  installBtn.addEventListener("click", async () => {
-    installBtn.style.display = "none";
-    deferredPrompt.prompt();
-    const result = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-  });
-});
-</script>
 
 </script>
 </body>

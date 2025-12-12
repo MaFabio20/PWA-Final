@@ -9,7 +9,7 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
   <title>Colviseg - Login</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#004aad">
+  <meta name="theme-color" content="#004aad">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="shortcut icon" href="assets/img-pwa/favicon.png" type="image/x-icon">
 </head>
@@ -105,25 +105,7 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 }
  </script>
 
- <script>
-let deferredPrompt;
 
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-
-  // muestra un botón
-  const installBtn = document.getElementById("btnInstalar");
-  if (installBtn) installBtn.style.display = "block";
-
-  installBtn.addEventListener("click", async () => {
-    installBtn.style.display = "none";
-    deferredPrompt.prompt();
-    const result = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-  });
-});
-</script>
 
 </body>
 </html>
