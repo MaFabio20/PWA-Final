@@ -1,7 +1,9 @@
-const CACHE_NAME = "colviseg-v7";
+const CACHE_NAME = "colviseg-v3";
 
 const ASSETS = [
-  "/offline.html",
+  "/",
+  "/index.php",
+  "/dashboard.php",
   "/css/styles.css",
   "/js/app.js",
   "/assets/img-pwa/icon_192.png",
@@ -20,24 +22,23 @@ self.addEventListener("install", (event) => {
 
 // ACTIVACIÓN
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.map((key) => key !== CACHE_NAME && caches.delete(key)))
-    )
-  );
-  self.clients.claim();
+  event.waitUntil(self.clients.claim());
 });
 
-// FETCH — Network First con fallback a OFFLINE.HTML
+// FETCH — Network First con fallback a caché
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, clone);
+        });
         return response;
       })
       .catch(() => {
         return caches.match(event.request)
-          .then((cached) => cached || caches.match("/offline.html"));
+          .then((cached) => cached || caches.match("/index.php"));
       })
   );
 });
