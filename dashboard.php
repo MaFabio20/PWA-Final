@@ -196,6 +196,18 @@ if (!navigator.onLine) {
   }
 }
 </script>
+<script>
+let deferredPrompt;
 
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault(); 
+  deferredPrompt = e;
+
+  console.log("PWA lista para instalar");
+
+  // (OPCIONAL) Aquí puedes mostrar un botón tuyo:
+  // document.getElementById("btnInstalar").style.display = "block";
+});
+</script>
 </body>
 </html>
