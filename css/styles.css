@@ -8,12 +8,10 @@
   --warning: #f4a261;
   --success: #2a9d8f;
 
-  /* mejoras */
   --radius: 14px;
   --shadow: 0 4px 15px rgba(0,0,0,0.06);
 }
 
-/* GLOBAL */
 * { box-sizing: border-box; }
 
 body {
@@ -24,7 +22,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* TOPBAR */
 .topbar {
   background: linear-gradient(90deg, var(--primary), var(--accent));
   color: #fff;
@@ -47,7 +44,6 @@ body {
   text-decoration: none;
 }
 
-/* LAYOUT */
 .layout {
   display: grid;
   grid-template-columns: 300px 1fr;
@@ -73,7 +69,6 @@ body {
   min-height: 320px;
 }
 
-/* FORM */
 input, select, textarea, button {
   font-family: inherit;
 }
@@ -112,7 +107,6 @@ button {
   background: #00254d;
 }
 
-/* TICKETS */
 .ticketsContainer {
   display: flex;
   flex-direction: column;
@@ -157,7 +151,6 @@ button {
   color: var(--muted);
 }
 
-/* Etiquetas */
 .status-pill {
   padding: 6px 12px;
   border-radius: 999px;
@@ -169,7 +162,6 @@ button {
 .status-en_proceso { background: var(--warning); color: #111; }
 .status-finalizado { background: var(--success); color: #fff; }
 
-/* ACTIONS */
 .small-btn {
   padding: 8px 12px;
   border-radius: 10px;
@@ -181,7 +173,6 @@ button {
 .btn-proceso { background: #f59e0b; color: #fff; }
 .btn-final { background: #16a34a; color: #fff; }
 
-/* HISTORIAL */
 .historial {
   background: #fbfbff;
   border-left: 4px solid #e6e9ef;
@@ -243,7 +234,6 @@ button {
   background: #00254d;
 }
 
-/* RESPONSIVE */
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
@@ -268,7 +258,6 @@ button {
   }
 }
 
-/* ERROR */
 .error-msg {
   color: #ff3b3b;
   font-size: 14px;
