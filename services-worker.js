@@ -1,7 +1,7 @@
-const CACHE_NAME = "colviseg-v3";  // Cambié a v3 para forzar actualización
+const CACHE_NAME = "colviseg-v4";  // Actualizado para forzar recarga
 
 const ASSETS = [
-  "/",  // Opcional: quítalo si causa problemas
+  "/",  // Quita esta línea si causa problemas (es opcional)
   "/index.php",
   "/dashboard.php",
   "/css/styles.css",
@@ -12,15 +12,15 @@ const ASSETS = [
   "/manifest.json"
 ];
 
-// INSTALACIÓN — Mejorada para manejar errores
+// INSTALACIÓN — Usando cache.add() en loop para manejar errores
 self.addEventListener("install", e => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Cachear assets uno por uno, ignorando errores
+      // Cachear assets uno por uno, ignorando errores individuales
       const promises = ASSETS.map(url => {
         return cache.add(url).catch(err => {
-          console.warn(`Failed to cache ${url}:`, err);  // Log para depuración
-          // No fallar todo: continúa con los demás
+          console.warn(`[Service Worker] Failed to cache ${url}:`, err);
+          // Continúa con los demás assets
         });
       });
       return Promise.all(promises);
@@ -29,7 +29,7 @@ self.addEventListener("install", e => {
   self.skipWaiting();
 });
 
-// ACTIVACIÓN (sin cambios)
+// ACTIVACIÓN
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -43,7 +43,7 @@ self.addEventListener("activate", e => {
   self.clients.claim();
 });
 
-// FETCH — CACHE FIRST (sin cambios, pero asegúrate de que funcione con el fallback anterior)
+// FETCH — CACHE FIRST
 self.addEventListener("fetch", e => {
   // Solo interceptar solicitudes GET
   if (e.request.method !== "GET") return;
