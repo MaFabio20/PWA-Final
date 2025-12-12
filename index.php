@@ -113,14 +113,6 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 
   </script>
 
-  <!-- REGISTRO CORRECTO DEL SERVICE WORKER -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js")
-        .then(() => console.log("Service Worker registrado en INDEX"))
-        .catch(err => console.error("Error SW:", err));
-    }
-  </script>
-
+ 
 </body>
 </html>
