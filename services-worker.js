@@ -13,10 +13,6 @@ const ASSETS = [
 ];
 
 
-
-
-
-
 // INSTALACIÓN no sirve pero el cache si
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -24,6 +20,7 @@ self.addEventListener("install", (event) => {
   );
   self.skipWaiting();
 });
+
 
 /*Instalacion que sirve pero la cache no
 self.addEventListener("install", e => {
