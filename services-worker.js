@@ -20,16 +20,7 @@ self.addEventListener("install", (event) => {
   );
   self.skipWaiting();
 });
-
-
-/*Instalacion que sirve pero la cache no
-self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
-  self.skipWaiting();
-});
-*/
+;
 
 // ACTIVACIÓN
 self.addEventListener("activate", (event) => {
@@ -53,3 +44,12 @@ self.addEventListener("fetch", (event) => {
       })
   );
 });
+
+/*Instalacion que sirve pero la cache no
+self.addEventListener("install", e => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+  );
+  self.skipWaiting();
+});
+*/
