@@ -12,42 +12,41 @@ const ASSETS = [
   "/manifest.json"
 ];
 
-self.addEventListener("install", event => {
+// INSTALACIÓN — mejorada para evitar errores que bloquean la instalación
+self.addEventListener("install", (event) => {
+  console.log("SW: Instalando…");
+
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
+      .then(cache => {
+        return cache.addAll(ASSETS);
+      })
       .catch(err => {
-        console.error("Error cacheando:", err);
+        // IMPORTANTÍSIMO: capturar errores evita que Chrome bloquee la instalación
+        console.warn("SW: Error cacheando (NO detiene instalación):", err);
       })
   );
 
   self.skipWaiting();
 });
 
-/*
-// INSTALACIÓN no sirve pero el cache si
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
-  self.skipWaiting();
-});
-;
-*/
 // ACTIVACIÓN
 self.addEventListener("activate", (event) => {
+  console.log("SW: Activado");
   event.waitUntil(self.clients.claim());
 });
 
-// FETCH — Network First con fallback a caché
+// FETCH — network first con fallback a cache
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
         const clone = response.clone();
+
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, clone);
         });
+
         return response;
       })
       .catch(() => {
@@ -56,12 +55,3 @@ self.addEventListener("fetch", (event) => {
       })
   );
 });
-
-/*Instalacion que sirve pero la cache no
-self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
-  self.skipWaiting();
-});
-*/
