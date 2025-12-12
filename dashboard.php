@@ -1,6 +1,17 @@
 <?php
 session_start();
-if (!isset($_SESSION['user'])) { header("Location: index.php"); exit; }
+
+// Permitir entrada offline si existe usuario guardado localmente
+if (!isset($_SESSION['user'])) {
+    echo "<script>
+      if (localStorage.getItem('user_offline')) {
+        // continuar sin sesión PHP
+      } else {
+        window.location.href = 'index.php';
+      }
+    </script>";
+}
+
 
 require_once "db/conexion.php";
 $conn = Conexion::connection();

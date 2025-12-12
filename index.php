@@ -61,52 +61,44 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
   const usuario = formData.get("usuario");
   const password = formData.get("password");
 
-  // --------------------------------------------------
-  // 1. SI HAY INTERNET → login normal + guardar offline
-  // --------------------------------------------------
-  if (navigator.onLine) {
-    fetch("api/login.php", {
-      method: "POST",
-      body: formData
-    })
+  fetch("api/login.php", { method: "POST", body: formData })
     .then(r => r.json())
     .then(data => {
+
+      // Login ONLINE correcto
       if (data.status === "ok") {
 
-        // Guardamos el último login correcto
-        localStorage.setItem("offlineLogin", JSON.stringify({
+        // Guardar credenciales para login offline
+        localStorage.setItem("user_offline", JSON.stringify({
           usuario: usuario,
-          password: password // plano porque tu sistema usa plano
+          password: password
         }));
 
         window.location.href = "dashboard.php";
-      } else {
-        mostrarError("Usuario o contraseña incorrectos");
+        return;
       }
+
+      // Online pero credenciales incorrectas
+      mostrarError("Usuario o contraseña incorrectos");
     })
-    .catch(() => mostrarError("Error de conexión"));
-  }
+    .catch(() => {
+      // LOGIN OFFLINE
+      const saved = localStorage.getItem("user_offline");
 
-  // --------------------------------------------------
-  // 2. LOGIN OFFLINE (SIN INTERNET)
-  // --------------------------------------------------
-  else {
-    const saved = localStorage.getItem("offlineLogin");
+      if (!saved) {
+        mostrarError("Sin internet y sin datos guardados");
+        return;
+      }
 
-    if (!saved) {
-      mostrarError("No es posible iniciar sin conexión. Inicia una vez con internet.");
-      return false;
-    }
+      const storedUser = JSON.parse(saved);
 
-    const data = JSON.parse(saved);
-
-    // Comparamos con el último login exitoso
-    if (usuario === data.usuario && password === data.password) {
-      window.location.href = "dashboard.php"; // acceso offline
-    } else {
-      mostrarError("Credenciales no coinciden con el último inicio de sesión.");
-    }
-  }
+      if (storedUser.usuario === usuario && storedUser.password === password) {
+        // Permitir acceso offline
+        window.location.href = "dashboard.php";
+      } else {
+        mostrarError("Credenciales incorrectas (modo offline)");
+      }
+    });
 
   return false;
 }
