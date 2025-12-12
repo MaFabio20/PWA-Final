@@ -59,14 +59,37 @@ self.addEventListener("fetch", e => {
           return res;
         })
         .catch(() => {
-          // Fallback mejorado para offline
+          // Fallback mejorado para offline: SIEMPRE devolver una Response válida
           if (e.request.mode === "navigate") {
-            // Si es navegación a dashboard y está en caché, devolverlo
-            if (e.request.url.includes("/dashboard.php")) {
-              return caches.match("/dashboard.php") || caches.match("/index.php");
-            }
-            // Para otras navegaciones, devolver index
-            return caches.match("/index.php");
+            // Intentar devolver la página específica si está en caché
+            const fallbackUrl = e.request.url.includes("/dashboard.php") ? "/dashboard.php" : "/index.php";
+            return caches.match(fallbackUrl).then(cached => {
+              if (cached) return cached;
+              // Si no hay caché, devolver una página básica de offline
+              return new Response(`
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Offline - Colviseg</title>
+                  <style>
+                    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
+                    h1 { color: #333; }
+                    p { color: #666; }
+                  </style>
+                </head>
+                <body>
+                  <h1>Sin conexión a internet</h1>
+                  <p>La página que buscas no está disponible offline. Conéctate a internet para continuar.</p>
+                  <p><a href="/">Ir al inicio</a></p>
+                </body>
+                </html>
+              `, {
+                status: 200,
+                headers: { 'Content-Type': 'text/html' }
+              });
+            });
           }
         });
     })
