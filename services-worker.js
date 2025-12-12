@@ -12,7 +12,7 @@ const ASSETS = [
   "/manifest.json"
 ];
 
-// INSTALACIÓN
+// INSTALACIÓN (sin cambios)
 self.addEventListener("install", e => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
@@ -20,7 +20,7 @@ self.addEventListener("install", e => {
   self.skipWaiting();
 });
 
-// ACTIVACIÓN
+// ACTIVACIÓN (sin cambios)
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -31,15 +31,14 @@ self.addEventListener("activate", e => {
       )
     )
   );
-
   self.clients.claim();
 });
 
-
-// FETCH — CACHE FIRST para HTML y PHP
+// FETCH — CACHE FIRST mejorado para HTML y PHP
 self.addEventListener("fetch", e => {
+  // Solo interceptar solicitudes GET (evita cachear POST, login, etc.)
+  if (e.request.method !== "GET") return;
 
-  // Interceptamos todo
   e.respondWith(
     caches.match(e.request).then(cached => {
       // Si existe en caché, devolverlo INMEDIATO (OFFLINE FUNCIONA)
@@ -48,6 +47,10 @@ self.addEventListener("fetch", e => {
       // Si no existe → intentar red con fallback
       return fetch(e.request)
         .then(res => {
+          // Solo cachear respuestas exitosas (status 200)
+          if (!res || res.status !== 200 || res.type !== "basic") {
+            return res; // No cachear errores o respuestas no básicas
+          }
           // Guardamos una copia EN CACHÉ (incluye HTML generado del PHP)
           const clone = res.clone();
           caches.open(CACHE_NAME).then(cache => {
@@ -56,8 +59,13 @@ self.addEventListener("fetch", e => {
           return res;
         })
         .catch(() => {
-          // Si no hay internet, devolver INDEX como fallback
+          // Fallback mejorado para offline
           if (e.request.mode === "navigate") {
+            // Si es navegación a dashboard y está en caché, devolverlo
+            if (e.request.url.includes("/dashboard.php")) {
+              return caches.match("/dashboard.php") || caches.match("/index.php");
+            }
+            // Para otras navegaciones, devolver index
             return caches.match("/index.php");
           }
         });
