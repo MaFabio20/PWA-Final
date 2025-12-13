@@ -167,7 +167,7 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
               <ul>
                 <?php
                   $hid = intval($row['id']);
-                  $hstmt = $conn->prepare("SELECT h.*, u.nombre FROM historial h LEFT JOIN usuarios u ON h.usuario=u.id WHERE h.ticket_id = :hid ORDER BY h.fecha DESC");
+                  $hstmt = $conn->prepare("SELECT h.*, u.nombre FROM historial_user h LEFT JOIN usuarios u ON h.usuario=u.id WHERE h.ticket_id = :hid ORDER BY h.fecha DESC");
                   $hstmt->execute([':hid' => $hid]);
                   $hrows = $hstmt->fetchAll(PDO::FETCH_ASSOC);
                   foreach($hrows as $h) {
