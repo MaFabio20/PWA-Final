@@ -6,7 +6,7 @@ class Conexion {
 
     public static function connection() {
 
-        $hostname  = "server-pwa.mysql.database.azure.com;
+        $hostname  = "server-pwa.mysql.database.azure.com";
         $port      = 3306;
         $database  = "pwa_ejecucion";
         $username  = "admin_php";
