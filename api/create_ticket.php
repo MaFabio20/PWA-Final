@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 require_once "../db/conexion.php";
 
@@ -58,4 +59,5 @@ if ($ticket_id) {
 }
 
 header("Location: /dashboard.php");
+ob_end_flush();
 exit;
