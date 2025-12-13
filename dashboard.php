@@ -148,13 +148,13 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <div class="ticket-actions">
               <?php if ($row['asignado_a'] == $userId && $row['estado'] != 'Finalizado'): ?>
-                <form action="api/change_status.php" method="POST" style="display:inline-block">
+                <form action="/api/change_status.php" method="POST" style="display:inline-block">
                   <input type="hidden" name="id" value="<?= $row['id'] ?>">
                   <input type="hidden" name="estado" value="En proceso">
                   <button class="small-btn btn-proceso">Marcar En proceso</button>
                 </form>
 
-                <form action="api/change_status.php" method="POST" style="display:inline-block">
+                <form action="/api/change_status.php" method="POST" style="display:inline-block">
                   <input type="hidden" name="id" value="<?= $row['id'] ?>">
                   <input type="hidden" name="estado" value="Finalizado">
                   <button class="small-btn btn-final">Marcar Finalizado</button>
