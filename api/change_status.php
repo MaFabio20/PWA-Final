@@ -31,5 +31,6 @@ $u->execute([':estado' => $new, ':id' => $id]);
 $h = $conn->prepare("INSERT INTO historial (ticket_id, estado, usuario) VALUES (:tid, :estado, :user)");
 $h->execute([':tid' => $id, ':estado' => $new, ':user' => $user['id']]);
 
-header("Location: ../dashboard.php");
+header("Location: /dashboard.php");
+
 exit;

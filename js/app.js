@@ -49,7 +49,7 @@ window.login = function (event) {
       // Intento OFFLINE
       const ok = await loginOffline(user, pass);
       if (ok) {
-        window.location.href = "dashboard.php";
+        window.location.href = "/dashboard.php";
       } else {
         mostrarError("Sin conexión y sin sesión previa.");
       }
