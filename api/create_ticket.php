@@ -53,7 +53,7 @@ $stmt->execute([
 $ticket_id = $conn->lastInsertId();
 
 if ($ticket_id) {
-    $hstmt = $conn->prepare("INSERT INTO historial-user (ticket_id, estado, usuario) VALUES (:tid, 'Abierto', :user)");
+    $hstmt = $conn->prepare("INSERT INTO historial (ticket_id, estado, usuario) VALUES (:tid, 'Abierto', :user)");
     $hstmt->execute([':tid' => $ticket_id, ':user' => $creador]);
 }
 
