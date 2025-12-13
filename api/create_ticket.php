@@ -57,5 +57,5 @@ if ($ticket_id) {
     $hstmt->execute([':tid' => $ticket_id, ':user' => $creador]);
 }
 
-header("Location: ../dashboard.php");
+header("Location: /dashboard.php");
 exit;
