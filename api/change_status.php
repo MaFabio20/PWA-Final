@@ -1,5 +1,7 @@
 <?php
+ob_start();
 session_start();
+
 require_once "../db/conexion.php";
 
 $conn = Conexion::connection();
@@ -54,4 +56,5 @@ $h->execute([
 ]);
 
 header("Location: /dashboard.php");
+ob_end_flush();
 exit;
