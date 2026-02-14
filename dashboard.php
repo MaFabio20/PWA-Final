@@ -4,7 +4,7 @@ session_start();
 if (!isset($_SESSION['user'])) {
     echo "<script>
       if (localStorage.getItem('user_offline')) {
-        // continuar sin sesión PHP
+        
       } else {
         window.location.href = 'index.php';
       }
@@ -96,7 +96,7 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
       </select>
 
       <label>Foto (opcional)</label>
-      <!-- capture permite abrir cámara en móviles; en PC abrirá selector de archivos -->
+      
       <input type="file" name="attachment" accept="image/*" capture="environment">
 
       <input type="hidden" name="creador" value="<?= $userId ?>">
