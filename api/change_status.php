@@ -43,11 +43,9 @@ if ($row['estado'] === 'Finalizado') {
     exit;
 }
 
-// actualizar
 $u = $conn->prepare("UPDATE tickets SET estado = :estado WHERE id = :id");
 $u->execute([':estado' => $new, ':id' => $id]);
 
-// historial
 $h = $conn->prepare("INSERT INTO historial (ticket_id, estado, usuario) VALUES (:tid, :estado, :user)");
 $h->execute([
     ':tid' => $id,
