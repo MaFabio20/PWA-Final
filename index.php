@@ -23,7 +23,7 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 
       <h2>Iniciar sesión</h2>
 
-      <!-- FORMULARIO SIN RECARGAR PÁGINA -->
+      
       <form onsubmit="return login(event)" class="login-form">
 
         <label>Usuario</label>
@@ -34,7 +34,7 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 
         <button type="submit" class="btn-login">Ingresar</button>
 
-        <!-- Mensaje de error -->
+        
         <p id="error-msg" class="error-msg"></p>
 
       </form>
@@ -52,8 +52,7 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
 
   <script src="js/app.js"></script>
 
-  <!-- SCRIPT DE VALIDACIÓN Y ANIMACIÓN -->
-  <script>
+   <script>
    function login(event) {
   event.preventDefault();
 
@@ -66,10 +65,9 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
     .then(r => r.json())
     .then(data => {
 
-      // Login ONLINE correcto
+      
       if (data.status === "ok") {
 
-        // Guardar credenciales para login offline
         localStorage.setItem("user_offline", JSON.stringify({
           usuario: usuario,
           password: password
@@ -79,11 +77,10 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
         return;
       }
 
-      // Online pero credenciales incorrectas
       mostrarError("Usuario o contraseña incorrectos");
     })
     .catch(() => {
-      // LOGIN OFFLINE
+      
       const saved = localStorage.getItem("user_offline");
 
       if (!saved) {
@@ -94,7 +91,7 @@ if (isset($_SESSION['user'])) header("Location: dashboard.php");
       const storedUser = JSON.parse(saved);
 
       if (storedUser.usuario === usuario && storedUser.password === password) {
-        // Permitir acceso offline
+        
         window.location.href = "dashboard.php";
       } else {
         mostrarError("Credenciales incorrectas (modo offline)");
