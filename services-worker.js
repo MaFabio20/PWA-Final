@@ -12,7 +12,6 @@ const ASSETS = [
   "/manifest.json"
 ];
 
-// INSTALACIÓN — mejorada para evitar errores que bloquean la instalación
 self.addEventListener("install", (event) => {
   console.log("SW: Instalando…");
 
@@ -22,7 +21,6 @@ self.addEventListener("install", (event) => {
         return cache.addAll(ASSETS);
       })
       .catch(err => {
-        // IMPORTANTÍSIMO: capturar errores evita que Chrome bloquee la instalación
         console.warn("SW: Error cacheando (NO detiene instalación):", err);
       })
   );
@@ -30,13 +28,11 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// ACTIVACIÓN
 self.addEventListener("activate", (event) => {
   console.log("SW: Activado");
   event.waitUntil(self.clients.claim());
 });
 
-// FETCH — network first con fallback a cache
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
