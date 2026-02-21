@@ -1,6 +1,7 @@
 <?php
 ob_start();
 session_start();
+define('REDIRECT_PREFIX', 'Location: ');
 define('DASHBOARD_URL', '../dashboard.php');
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -16,7 +17,7 @@ if (!$pdo) {
 $user = $_SESSION['user'] ?? null;
 
 if (!$user) {
-    header("Location: ../index.php");
+    header(REDIRECT_PREFIX . DASHBOARD_URL);
     exit;
 }
 
@@ -24,7 +25,7 @@ $id  = intval($_POST['id'] ?? 0);
 $new = trim($_POST['estado'] ?? '');
 
 if ($id <= 0 || $new === '') {
-    header("Location: " . DASHBOARD_URL);
+    header(REDIRECT_PREFIX . DASHBOARD_URL);
     exit;
 }
 
@@ -33,17 +34,17 @@ $stmt->execute([':id' => $id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$row) {
-    header("Location: " . DASHBOARD_URL);
+   header(REDIRECT_PREFIX . DASHBOARD_URL);
     exit;
 }
 
 if ((int)$row['asignado_a'] !== (int)$user['id']) {
-    header("Location: " . DASHBOARD_URL);
+    header(REDIRECT_PREFIX . DASHBOARD_URL);
     exit;
 }
 
 if ($row['estado'] === 'Finalizado') {
-    header("Location: " . DASHBOARD_URL);
+    header(REDIRECT_PREFIX . DASHBOARD_URL);
     exit;
 }
 
@@ -63,6 +64,6 @@ $h->execute([
     ':user' => $user['id']
 ]);
 
-header("Location: " . DASHBOARD_URL);
+header(REDIRECT_PREFIX . DASHBOARD_URL);
 ob_end_flush();
 exit;
