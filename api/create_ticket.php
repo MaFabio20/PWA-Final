@@ -1,10 +1,16 @@
 <?php
 ob_start();
 session_start();
-require_once "../db/conexion.php";
 
-$conn = Conexion::connection();
-if (!$conn) { die("Error conexión: " . Conexion::$mensaje); }
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use DB\Conexion;
+
+$pdo = Conexion::connection();
+
+if (!$pdo) {
+    die("Error conexión: " . Conexion::$mensaje);
+}
 
 $creador = intval($_POST['creador'] ?? 0);
 $titulo = trim($_POST['titulo'] ?? '');
@@ -18,31 +24,45 @@ if (!$titulo || !$descripcion || !$asignado_a) {
 }
 
 $uploadDir = __DIR__ . '/../uploads/';
-if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0755, true);
+}
 
 $uploadName = null;
+
 if (!empty($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+
     $tmp = $_FILES['attachment']['tmp_name'];
     $orig = basename($_FILES['attachment']['name']);
+
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime = finfo_file($finfo, $tmp);
     finfo_close($finfo);
 
     $allowed = ['image/jpeg','image/png','image/webp','image/gif','image/jpg'];
-    if (!in_array($mime, $allowed)) {
-        $uploadName = null;
-    } else {
+
+    if (in_array($mime, $allowed)) {
+
         $ext = pathinfo($orig, PATHINFO_EXTENSION);
         $uploadName = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
         $dest = $uploadDir . $uploadName;
+
         if (!move_uploaded_file($tmp, $dest)) {
             $uploadName = null;
         }
     }
 }
 
-$sql = "INSERT INTO tickets (titulo, descripcion, prioridad, estado, creador, asignado_a, attachment) VALUES (:titulo, :descripcion, :prioridad, 'Abierto', :creador, :asignado_a, :attachment)";
-$stmt = $conn->prepare($sql);
+/* =========================
+   INSERTAR TICKET
+========================= */
+
+$sql = "INSERT INTO tickets 
+        (titulo, descripcion, prioridad, estado, creador, asignado_a, attachment) 
+        VALUES 
+        (:titulo, :descripcion, :prioridad, 'Abierto', :creador, :asignado_a, :attachment)";
+
+$stmt = $pdo->prepare($sql);
 $stmt->execute([
     ':titulo' => $titulo,
     ':descripcion' => $descripcion,
@@ -51,13 +71,24 @@ $stmt->execute([
     ':asignado_a' => $asignado_a,
     ':attachment' => $uploadName
 ]);
-$ticket_id = $conn->lastInsertId();
+
+$ticket_id = $pdo->lastInsertId();
+
+/* =========================
+   INSERTAR HISTORIAL
+========================= */
 
 if ($ticket_id) {
-    $hstmt = $conn->prepare("INSERT INTO historial (ticket_id, estado, usuario) VALUES (:tid, 'Abierto', :user)");
-    $hstmt->execute([':tid' => $ticket_id, ':user' => $creador]);
+
+    $hstmt = $pdo->prepare("INSERT INTO historial (ticket_id, estado, usuario) 
+                            VALUES (:tid, 'Abierto', :user)");
+
+    $hstmt->execute([
+        ':tid' => $ticket_id,
+        ':user' => $creador
+    ]);
 }
 
-header("Location: /dashboard.php");
+header("Location: ../dashboard.php");
 ob_end_flush();
 exit;

@@ -8,6 +8,11 @@ use DB\Conexion;
 
 $pdo = Conexion::connection();
 
+if (!$pdo) {
+    echo json_encode(['status' => 'error', 'msg' => 'db_error']);
+    exit;
+}
+
 $usuario = $_POST['usuario'] ?? '';
 $password = $_POST['password'] ?? '';
 
@@ -17,13 +22,13 @@ if (!$usuario || !$password) {
 }
 
 // Consulta usando PDO
-$stmt = $conn->prepare("SELECT id, usuario, nombre, password, rol FROM usuarios WHERE usuario = ?");
+$stmt = $pdo->prepare("SELECT id, usuario, nombre, password, rol FROM usuarios WHERE usuario = ?");
 $stmt->execute([$usuario]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ($row) {
 
-    // Comparación en texto plano (porque así está tu BD)
+    // Comparación en texto plano (según tu BD actual)
     if ($row['password'] === $password) {
 
         $_SESSION['user'] = [
@@ -38,6 +43,5 @@ if ($row) {
     }
 }
 
-// Si llega aquí → error
 echo json_encode(['status' => 'error']);
 exit;
