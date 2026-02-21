@@ -24,31 +24,25 @@ $user = $_SESSION['user'];
 $userId = intval($user['id']);
 $role = $user['rol'];
 
-/* =========================
-   CARGAR TECNICOS
-========================= */
 $tecnicosStmt = $pdo->query("SELECT id, nombre FROM usuarios WHERE rol='tecnico' ORDER BY nombre");
 $tecnicos = $tecnicosStmt->fetchAll(PDO::FETCH_ASSOC);
 
-/* =========================
-   CARGAR TICKETS SEGUN ROL
-========================= */
 if ($role === 'admin') {
 
-    $ticketsSQL = "SELECT t.*, u1.nombre AS creador_nombre, u2.nombre AS asignado_nombre 
-                   FROM tickets t 
-                   LEFT JOIN usuarios u1 ON t.creador=u1.id 
-                   LEFT JOIN usuarios u2 ON t.asignado_a=u2.id 
+    $ticketsSQL = "SELECT t.*, u1.nombre AS creador_nombre, u2.nombre AS asignado_nombre
+                   FROM tickets t
+                   LEFT JOIN usuarios u1 ON t.creador=u1.id
+                   LEFT JOIN usuarios u2 ON t.asignado_a=u2.id
                    ORDER BY t.fecha_creacion DESC";
 
     $stmt = $pdo->query($ticketsSQL);
 
 } elseif ($role === 'tecnico') {
 
-    $stmt = $pdo->prepare("SELECT t.*, u1.nombre AS creador_nombre, u2.nombre AS asignado_nombre 
-                            FROM tickets t 
-                            LEFT JOIN usuarios u1 ON t.creador=u1.id 
-                            LEFT JOIN usuarios u2 ON t.asignado_a=u2.id 
+    $stmt = $pdo->prepare("SELECT t.*, u1.nombre AS creador_nombre, u2.nombre AS asignado_nombre
+                            FROM tickets t
+                            LEFT JOIN usuarios u1 ON t.creador=u1.id
+                            LEFT JOIN usuarios u2 ON t.asignado_a=u2.id
                             WHERE t.asignado_a = :uid OR t.creador = :uid
                             ORDER BY t.fecha_creacion DESC");
 
@@ -56,10 +50,10 @@ if ($role === 'admin') {
 
 } else {
 
-    $stmt = $pdo->prepare("SELECT t.*, u1.nombre AS creador_nombre, u2.nombre AS asignado_nombre 
-                            FROM tickets t 
-                            LEFT JOIN usuarios u1 ON t.creador=u1.id 
-                            LEFT JOIN usuarios u2 ON t.asignado_a=u2.id 
+    $stmt = $pdo->prepare("SELECT t.*, u1.nombre AS creador_nombre, u2.nombre AS asignado_nombre
+                            FROM tickets t
+                            LEFT JOIN usuarios u1 ON t.creador=u1.id
+                            LEFT JOIN usuarios u2 ON t.asignado_a=u2.id
                             WHERE t.creador = :uid
                             ORDER BY t.fecha_creacion DESC");
 
@@ -91,9 +85,7 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <main class="layout">
 
-<!-- =========================
-     PANEL CREAR TICKET
-========================= -->
+
 <aside class="panel">
 <h3>Crear nuevo ticket</h3>
 
@@ -212,10 +204,10 @@ Prioridad: <strong><?= htmlspecialchars($row['prioridad']) ?></strong>
 <ul>
 <?php
 $hid = intval($row['id']);
-$hstmt = $pdo->prepare("SELECT h.*, u.nombre 
-                        FROM historial h 
-                        LEFT JOIN usuarios u ON h.usuario=u.id 
-                        WHERE h.ticket_id = :hid 
+$hstmt = $pdo->prepare("SELECT h.*, u.nombre
+                        FROM historial h
+                        LEFT JOIN usuarios u ON h.usuario=u.id
+                        WHERE h.ticket_id = :hid
                         ORDER BY h.fecha DESC");
 
 $hstmt->execute([':hid' => $hid]);

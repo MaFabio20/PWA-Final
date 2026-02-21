@@ -27,10 +27,6 @@ if ($id <= 0 || $new === '') {
     exit;
 }
 
-/* =========================
-   VERIFICAR TICKET
-========================= */
-
 $stmt = $pdo->prepare("SELECT asignado_a, estado FROM tickets WHERE id = :id");
 $stmt->execute([':id' => $id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -50,21 +46,14 @@ if ($row['estado'] === 'Finalizado') {
     exit;
 }
 
-/* =========================
-   ACTUALIZAR ESTADO
-========================= */
-
 $u = $pdo->prepare("UPDATE tickets SET estado = :estado WHERE id = :id");
 $u->execute([
     ':estado' => $new,
     ':id' => $id
 ]);
 
-/* =========================
-   INSERTAR EN HISTORIAL
-========================= */
 
-$h = $pdo->prepare("INSERT INTO historial (ticket_id, estado, usuario) 
+$h = $pdo->prepare("INSERT INTO historial (ticket_id, estado, usuario)
                     VALUES (:tid, :estado, :user)");
 
 $h->execute([

@@ -28,9 +28,7 @@ $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ($row) {
 
-    // Comparación en texto plano (según tu BD actual)
     if ($row['password'] === $password) {
-
         $_SESSION['user'] = [
             'id' => $row['id'],
             'usuario' => $row['usuario'],

@@ -53,13 +53,9 @@ if (!empty($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_E
     }
 }
 
-/* =========================
-   INSERTAR TICKET
-========================= */
-
-$sql = "INSERT INTO tickets 
-        (titulo, descripcion, prioridad, estado, creador, asignado_a, attachment) 
-        VALUES 
+$sql = "INSERT INTO tickets
+        (titulo, descripcion, prioridad, estado, creador, asignado_a, attachment)
+        VALUES
         (:titulo, :descripcion, :prioridad, 'Abierto', :creador, :asignado_a, :attachment)";
 
 $stmt = $pdo->prepare($sql);
@@ -74,13 +70,9 @@ $stmt->execute([
 
 $ticket_id = $pdo->lastInsertId();
 
-/* =========================
-   INSERTAR HISTORIAL
-========================= */
-
 if ($ticket_id) {
 
-    $hstmt = $pdo->prepare("INSERT INTO historial (ticket_id, estado, usuario) 
+    $hstmt = $pdo->prepare("INSERT INTO historial (ticket_id, estado, usuario)
                             VALUES (:tid, 'Abierto', :user)");
 
     $hstmt->execute([
