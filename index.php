@@ -1,7 +1,9 @@
 <?php
 session_start();
-if (isset($_SESSION['user']))
-  header("Location: dashboard.php");
+if (isset($_SESSION['user'])) {
+    header("Location: dashboard.php");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
