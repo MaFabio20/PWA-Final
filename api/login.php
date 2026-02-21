@@ -2,10 +2,11 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once "../db/conexion.php";
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// Crear la conexión PDO correctamente
-$conn = Conexion::connection();
+use DB\Conexion;
+
+$pdo = Conexion::connection();
 
 $usuario = $_POST['usuario'] ?? '';
 $password = $_POST['password'] ?? '';

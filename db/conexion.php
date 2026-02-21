@@ -1,5 +1,10 @@
 <?php
 
+namespace DB;
+
+use PDO;
+use PDOException;
+
 class Conexion {
 
     public static $mensaje = ""; 
@@ -15,7 +20,7 @@ class Conexion {
         $ssl_cert_path = __DIR__ . "/../assets/databases/DigiCertGlobalRootG2.crt.pem";
 
         if (!file_exists($ssl_cert_path)) {
-            self::$mensaje = "❌ Certificado NO encontrado en: $ssl_cert_path";
+            self::$mensaje = "Certificado NO encontrado.";
             return false;
         }
 
@@ -31,19 +36,13 @@ class Conexion {
 
             $pdo = new PDO($dsn, $username, $password, $options);
 
-            self::$mensaje = "✔ Conexión exitosa a Azure MySQL";
+            self::$mensaje = "Conexión exitosa";
             return $pdo;
 
         } catch (PDOException $e) {
 
-            self::$mensaje = "❌ Error de conexión: " . $e->getMessage();
+            self::$mensaje = "Error: " . $e->getMessage();
             return false;
         }
     }
 }
-
-
-
-?>
-
-

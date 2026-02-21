@@ -12,11 +12,11 @@ if (!isset($_SESSION['user'])) {
 }
 
 
-require_once "db/conexion.php";
-$conn = Conexion::connection();
-if (!$conn) {
-    die("Error de conexión: " . Conexion::$mensaje);
-}
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use DB\Conexion;
+
+$pdo = Conexion::connection();
 
 $user = $_SESSION['user'];
 $userId = intval($user['id']);
