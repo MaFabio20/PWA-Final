@@ -30,10 +30,10 @@ if (isset($_SESSION['user'])) {
 
       <form onsubmit="return login(event)" class="login-form">
 
-        <label>Usuario</label>
+        <label for="usuario">Usuario</label>
         <input type="text" name="usuario" required>
 
-        <label>Contraseña</label>
+        <label for="password">Contraseña</label>
         <input type="password" name="password" required>
 
         <button type="submit" class="btn-login">Ingresar</button>

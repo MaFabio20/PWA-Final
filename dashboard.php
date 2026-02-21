@@ -91,20 +91,20 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <form action="api/create_ticket.php" method="POST" enctype="multipart/form-data">
 
-<label>Título</label>
+<label for="titulo">Título</label>
 <input name="titulo" required maxlength="200">
 
-<label>Descripción</label>
+<label for="descripcion">Descripción</label>
 <textarea name="descripcion" rows="4" required></textarea>
 
-<label>Prioridad</label>
+<label for="prioridad">Prioridad</label>
 <select name="prioridad">
 <option>Alta</option>
 <option selected>Media</option>
 <option>Baja</option>
 </select>
 
-<label>Asignar a (técnico)</label>
+<label for="asignado_a">Asignar a (técnico)</label>
 <select name="asignado_a" required>
 <option value="">-- seleccionar --</option>
 <?php foreach($tecnicos as $t): ?>
@@ -112,7 +112,7 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <?php endforeach; ?>
 </select>
 
-<label>Foto (opcional)</label>
+<label for="file">Foto (opcional)</label>
 <input type="file" name="attachment" accept="image/*" capture="environment">
 
 <input type="hidden" name="creador" value="<?= $userId ?>">
@@ -130,7 +130,7 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <div class="list-header">
 <h3>Tickets</h3>
 <div>
-<label>Filtrar:</label>
+<label for="Filtrar">Filtrar:</label>
 <select id="filterState" onchange="applyFilter()">
 <option value="todos">Todos</option>
 <option value="Abierto">Abiertos</option>
