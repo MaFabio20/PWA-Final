@@ -165,8 +165,8 @@ Prioridad: <strong><?= htmlspecialchars($row['prioridad']) ?></strong>
 </div>
 
 <div style="margin-top:8px">
-<span class="status-pill 
-<?= $row['estado']=='Abierto' ? 'status-abierto' : 
+<span class="status-pill
+<?= $row['estado']=='Abierto' ? 'status-abierto' :
    ($row['estado']=='En proceso' ? 'status-en_proceso' : 'status-finalizado') ?>">
 <?= htmlspecialchars($row['estado']) ?>
 </span>
