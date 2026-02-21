@@ -22,9 +22,7 @@ async function loginOffline(user, pass) {
   return user === savedUser && pass === savedPass;
 }
 
-// ==============================================
-// LOGIN NORMAL + OFFLINE
-// ==============================================
+
 window.login = function (event) {
   event.preventDefault();
 
@@ -56,7 +54,6 @@ window.login = function (event) {
     });
 };
 
-// Mensajes visuales
 function mostrarError(msg) {
   const e = document.getElementById("error-msg");
   e.innerText = msg;
