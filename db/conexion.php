@@ -1,10 +1,5 @@
 <?php
 
-namespace App\DB;
-
-use PDO;
-use PDOException;
-
 class Conexion {
 
     public static $mensaje = ""; 
@@ -46,3 +41,9 @@ class Conexion {
         }
     }
 }
+
+
+
+?>
+
+

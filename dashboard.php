@@ -12,11 +12,11 @@ if (!isset($_SESSION['user'])) {
 }
 
 
-require_once "../db/conexion.php";
-
-use App\DB\Conexion;
-
-$pdo = Conexion::connection();
+require_once "db/conexion.php";
+$conn = Conexion::connection();
+if (!$conn) {
+    die("Error de conexión: " . Conexion::$mensaje);
+}
 
 $user = $_SESSION['user'];
 $userId = intval($user['id']);
