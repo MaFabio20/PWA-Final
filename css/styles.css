@@ -16,7 +16,7 @@
 
 body {
   margin: 0;
-  font-family: Inter, Segoe UI, Arial;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
   background: var(--bg);
   color: #111;
   -webkit-font-smoothing: antialiased;
