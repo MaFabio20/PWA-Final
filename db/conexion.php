@@ -7,7 +7,7 @@ use PDOException;
 
 class Conexion {
 
-    public static $mensaje = ""; 
+    public static $mensaje = "";
 
     public static function connection() {
 
