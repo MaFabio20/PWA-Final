@@ -170,8 +170,13 @@ button {
   font-weight: 700;
 }
 
-.btn-proceso { background: #f59e0b; color: #fff; }
-.btn-final { background: #16a34a; color: #fff; }
+.btn-proceso {
+   background: #f59e0b;
+   color: #fff; }
+
+.btn-final {
+   background: #16a34a;
+   color: #fff; }
 
 .historial {
   background: #fbfbff;
