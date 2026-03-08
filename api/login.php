@@ -26,8 +26,6 @@ $stmt = $pdo->prepare("SELECT id, usuario, nombre, password, rol FROM usuarios W
 $stmt->execute([$usuario]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($row) {
-
     if ($row['password'] === $password) {
         $_SESSION['user'] = [
             'id' => $row['id'],
@@ -39,7 +37,6 @@ if ($row) {
         echo json_encode(['status' => 'ok']);
         exit;
     }
-}
 
 echo json_encode(['status' => 'error']);
 exit;
