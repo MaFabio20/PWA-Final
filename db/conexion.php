@@ -15,7 +15,8 @@ class Conexion {
         $port      = 3306;
         $database  = "pwa_ejecucion";
         $username  = "admin_php";
-        $password  = "Colviseg20*";
+        $config = include('config.php');
+        $password = $config['password'];
 
         $ssl_cert_path = __DIR__ . "/../assets/databases/DigiCertGlobalRootG2.crt.pem";
 
