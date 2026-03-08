@@ -164,10 +164,17 @@ $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 Prioridad: <strong><?= htmlspecialchars($row['prioridad']) ?></strong>
 </div>
 
+<?php
+$claseEstado = 'status-finalizado';
+
+if ($row['estado'] == 'Abierto') {
+    $claseEstado = 'status-abierto';
+} elseif ($row['estado'] == 'En proceso') {
+    $claseEstado = 'status-en_proceso';
+}
+?>
 <div style="margin-top:8px">
-<span class="status-pill
-<?= $row['estado']=='Abierto' ? 'status-abierto' :
-   ($row['estado']=='En proceso' ? 'status-en_proceso' : 'status-finalizado') ?>">
+<span class="status-pill <?= $claseEstado ?>">
 <?= htmlspecialchars($row['estado']) ?>
 </span>
 </div>
