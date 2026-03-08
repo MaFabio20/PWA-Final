@@ -2,7 +2,7 @@
 // REGISTRAR SERVICE WORKER
 // ==============================================
  if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
+  globalThis.addEventListener("load", () => {
     navigator.serviceWorker.register("/services-worker.js")
       .then(() => console.log("SW registrado"))
       .catch(err => console.log("Error SW:", err));
@@ -23,7 +23,7 @@ async function loginOffline(user, pass) {
 }
 
 
-window.login = function (event) {
+globalThis.login = function (event) {
   event.preventDefault();
 
   const form = document.querySelector(".login-form");
@@ -38,7 +38,7 @@ window.login = function (event) {
       if (res.status === "ok") {
         localStorage.setItem("user", user);
         localStorage.setItem("pass", pass);
-        window.location.href = "dashboard.php";
+        globalThis.location.href = "dashboard.php";
       } else {
         mostrarError("Credenciales incorrectas");
       }
@@ -47,7 +47,7 @@ window.login = function (event) {
       // Intento OFFLINE
       const ok = await loginOffline(user, pass);
       if (ok) {
-        window.location.href = "/dashboard.php";
+       globalThis.location.href = "/dashboard.php";
       } else {
         mostrarError("Sin conexión y sin sesión previa.");
       }
